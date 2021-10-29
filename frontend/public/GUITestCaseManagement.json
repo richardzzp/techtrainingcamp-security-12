@@ -1,0 +1,25 @@
+{
+    "success":true,
+    "message":"",
+    "content": {
+        "list": [
+            {
+                "name": "GUI测试1",
+                "service":"实例1",
+                "description":"本机GUI测试示例",
+                "file": "GUITest1",
+                "content": "Settings.MoveMouseDelay=1\nSettings.TypeDelay=0.1\nopenApp(r\"C:/Users/richard/AppData/Local/youdao/dict/Application/YoudaoDict.exe\")\nwait(3)\n#登录\nclick(\"1629105155535.png\")\nwait(0.5)\nclick(\"1629105169503.png\")\nwait(1)\ntype(\"1629105189636.png\",\"18260540752@163.com\")\ntype(\"1629105209716.png\",\"testpassword\")\nclick(\"1629105223988.png\")",
+                "checkpoints":3
+            },
+            {
+                "name": "GUI测试2",
+                "service":"实例3",
+                "description":"远程GUI测试示例",
+                "file": "GUITest2",
+                "content":"dragDrop(Pattern(\"1629105252144.png\").targetOffset(43,-1),Pattern(\"1629105252144.png\").targetOffset(103,1))\nwait(0.5)\ntype(\"c\",KEY_CTRL)\nclick(Pattern(\"1629105298362.png\").targetOffset(108,77))\ntype(\"v\",KEY_CTRL)\nclick(\"1629105323084.png\")\ndragDrop(Pattern(\"1629105342347.png\").targetOffset(103,223),Pattern(\"1629105342347.png\").targetOffset(313,222))\ntype(\"c\",KEY_CTRL)\nclick(Pattern(\"1629105384979.png\").targetOffset(-31,14))\ntype(\"v\",KEY_CTRL)",
+                "checkpoints":3
+            }
+        ],
+        "pageTotal": 2
+    }
+}

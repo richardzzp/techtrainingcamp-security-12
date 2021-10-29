@@ -1,24 +1,14 @@
-# frontend
+# 项目说明
 
-## Project setup
-```
-npm install
-```
+## 目的
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+SE的大四课程,面向互联网+的计算,作业的前端部分.
 
-### Compiles and minifies for production
-```
-npm run build
-```
+## 进度
 
-### Lints and fixes files
-```
-npm run lint
-```
+- [x] 初始化项目
+- [x] 添加ignore文件
+- [ ] 人员,订单等信息的展示
+- [ ] 人员,订单等信息的修改
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+

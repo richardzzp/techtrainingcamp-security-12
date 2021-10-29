@@ -1,0 +1,45 @@
+{
+    "success":true,
+    "message":"",
+    "content": {
+        "list": [
+            {
+                "name": "数值用例1",
+                "object":"public sin(double n)",
+                "service":"实例2",
+                "description": "测试sin()函数",
+                "file": "CalTest1",
+                "content": "args\n0.5\n9.8\n1.0\n4.8\n4.6\n1.4\n8.3\n6.3\n3.7\n5.5\n8.5\n5.2\n1.0\n6.5\n3.5\n8.\n5.\n5.3\n8.2\n6.\n\nres\n0.50\n-0.42\n0.89\n-0.99\n-1.00\n0.99\n0.88\n0.09\n-0.54\n-0.69\n0.76\n-0.85\n0.86\n0.50\n-0.41\n0.94\n-0.37\n-0.82\n0.93\n0.40",
+                "checkpoints": "20"
+            },
+            {
+                "name": "数值用例2",
+                "object":"public ArcLength(int n,int l)",
+                "service":"实例2",
+                "description": "测试弧长函数",
+                "file": "CalTest2",
+                "content": "args\n164;3\n50;8\n8;1\n164;8\n61;0\n150;5\n5;7\n77;3\n170;7\n179;5\n155;5\n165;0\n56;1\n157;4\n81;10\n54;7\n35;0\n22;4\n63;0\n148;5\n53;4\n162;4\n158;10\n137;5\n95;9\n140;4\n\nres\n8.59\n6.98\n0.14\n22.90\n0.00\n13.09\n0.61\n4.03\n20.77\n15.62\n13.53\n0.00\n0.98\n10.96\n14.14\n6.60\n0.00\n1.54\n0.00\n12.92\n3.70\n11.31\n27.58\n11.96\n14.92\n9.77\n",
+                "checkpoints": "26"
+            },
+            {
+                "name": "数值用例3",
+                "object":"public DefiniteIntegral_1/x(int start,int end)",
+                "service":"实例2",
+                "description": "测试定积分1/x函数",
+                "file": "CalTest3",
+                "content": "",
+                "checkpoints": "15"
+            },
+            {
+                "name": "数值用例4",
+                "object":"public circle_area(double r)",
+                "service":"实例2",
+                "description": "测试圆形面积函数",
+                "file": "CalTest4",
+                "content": "",
+                "checkpoints": "32"
+            }
+        ],
+        "pageTotal": 4
+    }
+}
