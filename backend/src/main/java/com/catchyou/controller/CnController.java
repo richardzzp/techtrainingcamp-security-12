@@ -29,7 +29,7 @@ public class CnController {
             User user = new User();
             user.setUsername((String) map.get("username"));
             user.setPassword((String) map.get("password"));
-            user.setPhone((String) map.get("phone"));
+            user.setPhoneNumber((String) map.get("phoneNumber"));
             user.setRegisterTime(new Date());
             HashMap<String, String> environment = (HashMap) map.get("environment");
             user.setRegisterIp(environment.get("ip"));
