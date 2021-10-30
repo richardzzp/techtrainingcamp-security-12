@@ -3,12 +3,12 @@ server:
 spring:
   application:
     name:  ByteDanceCamp
-    datasource:
-      type: com.alibaba.druid.pool.DruidDataSource
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://1.15.154.78:3306/auth?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-      username: bytedance
-      password: bytedance
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource  #当前数据源操作类型
+    driver-class-name: com.mysql.cj.jdbc.Driver # mysql驱动包
+    url: jdbc:mysql://1.15.154.78:3306/auth?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: bytedance
+    password: bytedance
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
