@@ -13,6 +13,7 @@ import java.util.UUID;
 
 /**
  * 处理手机验证码的业务逻辑层
+ * verifyCodes: 存放每个手机号码对应的验证码，以手机号为键，验证码为值
  */
 @Service
 public class VerifyCodeService {
@@ -20,7 +21,6 @@ public class VerifyCodeService {
 
     /**
      * 生成随机的验证码
-     *
      * @return 随机验证码
      */
     public VerifyCode generateVerifyCode(String phoneNumber) {
