@@ -11,6 +11,7 @@
     "axios": "^0.18.0",
     "babel-polyfill": "^6.26.0",
     "element-ui": "^2.11.0",
+    "fingerprintjs2": "^2.1.4",
     "vue": "^2.6.10",
     "vue-cropperjs": "^3.0.0",
     "vue-gantt-schedule-timeline-calendar": "^3.0.44",
