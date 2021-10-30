@@ -43,7 +43,7 @@ public class AuthController {
         String ip = (String) requestBody.get("ip");
         String deviceId = (String) requestBody.get("deviceId");
 
-        VerifyCode verifyCode = verifyCodeService.generateVerifyCode();
+        VerifyCode verifyCode = verifyCodeService.generateVerifyCode(phoneNumber);
 
         CommonResult<Map<String, Object>> responseBody = new CommonResult<>(0, "请求成功");
         Map<String, Object> data = new HashMap<>();
