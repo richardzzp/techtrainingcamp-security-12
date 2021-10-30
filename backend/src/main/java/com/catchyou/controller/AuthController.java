@@ -11,7 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/ljh")
-public class LjhAuthController {
+public class AuthController {
     /**
      * 获取验证码
      * @param requestBody
