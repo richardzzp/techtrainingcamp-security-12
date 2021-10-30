@@ -1,7 +1,17 @@
-#spring:
-#  datasource:
-#    username: root
-#    password: 123456
-#    url: jdbc:mysql:///catchyou
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-
+server:
+  port: 9100
+spring:
+  application:
+    name:  ByteDanceCamp
+    datasource:
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://1.15.154.78:3306/auth?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+      username: bytedance
+      password: bytedance
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.catchyou.pojo
