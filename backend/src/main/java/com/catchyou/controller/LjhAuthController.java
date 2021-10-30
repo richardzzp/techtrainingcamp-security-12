@@ -1,5 +1,9 @@
 package com.catchyou.controller;
 
+import com.catchyou.pojo.CommonResult;
+import com.catchyou.pojo.VerifyCode;
+import com.catchyou.service.LjhVerifyCodeService;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,7 +15,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/ljh")
+@AllArgsConstructor
 public class LjhAuthController {
+    private final LjhVerifyCodeService verifyCodeService;
+
     /**
      * 获取验证码
      * @param requestBody
@@ -30,22 +37,21 @@ public class LjhAuthController {
      * }
      */
     @PostMapping("/apply-code")
-    public Map<String, Object> applyCode(@RequestBody Map<String, Object> requestBody) {
-        //这里我写得详细点做个样子
-        String phoneNumber = (String) requestBody.get("PhoneNumber");
-        Map<String, Object> environment = (Map<String, Object>) requestBody.get("Environment");
-        String ip = (String) environment.get("IP");
-        String deviceId = (String) environment.get("DeviceID");
+    public CommonResult<Map<String, Object>> applyCode(@RequestBody Map<String, Object> requestBody) {
+        String phoneNumber = (String) requestBody.get("phoneNumber");
+        Map<String, Object> environment = (Map<String, Object>) requestBody.get("environment");
+        String ip = (String) requestBody.get("ip");
+        String deviceId = (String) requestBody.get("deviceId");
 
+        VerifyCode verifyCode = verifyCodeService.generateVerifyCode(phoneNumber);
+
+        CommonResult<Map<String, Object>> responseBody = new CommonResult<>(0, "请求成功");
         Map<String, Object> data = new HashMap<>();
-        data.put("VerifyCode", 123456);
-        data.put("ExpireTime", LocalDateTime.now());
-        data.put("DecisionType", 0);
+        data.put("verifyCode", verifyCode.getCode());
+        data.put("expireTime", verifyCode.getExpireTime());
+        data.put("decisionType", 0);
+        responseBody.setData(data);
 
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("Code", 0);
-        responseBody.put("Message", "请求成功");
-        responseBody.put("Data", data);
         return responseBody;
     }
 
