@@ -1,12 +1,11 @@
 package com.catchyou.controller;
 
+import com.catchyou.pojo.CommonResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -30,23 +29,8 @@ public class AuthController {
      * }
      */
     @PostMapping("/apply-code")
-    public Map<String, Object> applyCode(@RequestBody Map<String, Object> requestBody) {
-        //这里我写得详细点做个样子
-        String phoneNumber = (String) requestBody.get("PhoneNumber");
-        Map<String, Object> environment = (Map<String, Object>) requestBody.get("Environment");
-        String ip = (String) environment.get("IP");
-        String deviceId = (String) environment.get("DeviceID");
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("VerifyCode", 123456);
-        data.put("ExpireTime", LocalDateTime.now());
-        data.put("DecisionType", 0);
-
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("Code", 0);
-        responseBody.put("Message", "请求成功");
-        responseBody.put("Data", data);
-        return responseBody;
+    public CommonResult<Map<String, Object>> applyCode(@RequestBody Map<String, Object> requestBody) {
+        return null;
     }
 
     /**
@@ -76,7 +60,7 @@ public class AuthController {
      * }
      */
     @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody Map<String, Object> requestBody) {
+    public CommonResult<Map<String, Object>> login(@RequestBody Map<String, Object> requestBody) {
         return null;
     }
 
@@ -102,7 +86,7 @@ public class AuthController {
      * }
      */
     @PostMapping("/register")
-    public Map<String, Object> register(@RequestBody Map<String, Object> requestBody) {
+    public CommonResult<Map<String, Object>> register(@RequestBody Map<String, Object> requestBody) {
         return null;
     }
 
@@ -120,7 +104,7 @@ public class AuthController {
      * Message   //表示返回的说明，例如退出时，code=0，message=“退出成功”
      */
     @PostMapping("/logout")
-    public Map<String, Object> logout(@RequestBody Map<String, Object> requestBody) {
+    public CommonResult<Map<String, Object>> logout(@RequestBody Map<String, Object> requestBody) {
         return null;
     }
 }
