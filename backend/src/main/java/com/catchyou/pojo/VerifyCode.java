@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
+/**
+ * 验证码实体类
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Data

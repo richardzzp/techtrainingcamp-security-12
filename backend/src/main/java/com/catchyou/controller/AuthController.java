@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 用户认证控制层
+ */
 @RestController
 @RequestMapping("/auth")
 public class AuthController {

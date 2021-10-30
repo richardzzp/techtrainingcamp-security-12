@@ -11,10 +11,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * 处理手机验证码的业务逻辑层
+ */
 @Service
 public class VerifyCodeService {
     private List<VerifyCode> verifyCodes = new ArrayList<>();
 
+    /**
+     * 生成随机的验证码
+     * @return 随机验证码
+     */
     public VerifyCode generateVerifyCode() {
         BigInteger pureNumberUuid = new BigInteger(UUID.randomUUID().toString().replace("-", ""), 16);
         String code = String.format("%06d", pureNumberUuid).substring(0, 6);
