@@ -8,6 +8,7 @@ class TechtrainingcampSecurity12ApplicationTests {
 
 	@Test
 	void contextLoads() {
+
 	}
 
 }
