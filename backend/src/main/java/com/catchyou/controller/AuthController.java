@@ -1,16 +1,21 @@
 package com.catchyou.controller;
 
 import com.catchyou.pojo.CommonResult;
+import com.catchyou.pojo.VerifyCode;
+import com.catchyou.service.VerifyCodeService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+    private final VerifyCodeService verifyCodeService;
+
     /**
      * 获取验证码
      * @param requestBody
@@ -30,7 +35,21 @@ public class AuthController {
      */
     @PostMapping("/apply-code")
     public CommonResult<Map<String, Object>> applyCode(@RequestBody Map<String, Object> requestBody) {
-        return null;
+        String phoneNumber = (String) requestBody.get("phoneNumber");
+        Map<String, Object> environment = (Map<String, Object>) requestBody.get("environment");
+        String ip = (String) requestBody.get("ip");
+        String deviceId = (String) requestBody.get("deviceId");
+
+        VerifyCode verifyCode = verifyCodeService.generateVerifyCode();
+
+        CommonResult<Map<String, Object>> responseBody = new CommonResult<>(0, "请求成功");
+        Map<String, Object> data = new HashMap<>();
+        data.put("verifyCode", verifyCode.getCode());
+        data.put("expireTime", verifyCode.getExpireTime());
+        data.put("decisionType", 0);
+        responseBody.setData(data);
+
+        return responseBody;
     }
 
     /**
@@ -106,5 +125,9 @@ public class AuthController {
     @PostMapping("/logout")
     public CommonResult<Map<String, Object>> logout(@RequestBody Map<String, Object> requestBody) {
         return null;
+    }
+
+    public AuthController(VerifyCodeService verifyCodeService) {
+        this.verifyCodeService = verifyCodeService;
     }
 }
