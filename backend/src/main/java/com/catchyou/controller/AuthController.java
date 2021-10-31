@@ -1,13 +1,16 @@
 package com.catchyou.controller;
 
 import com.catchyou.pojo.CommonResult;
+import com.catchyou.pojo.User;
 import com.catchyou.pojo.VerifyCode;
+import com.catchyou.service.UserService;
 import com.catchyou.service.VerifyCodeService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +21,7 @@ import java.util.Map;
 @RequestMapping("/auth")
 public class AuthController {
     private final VerifyCodeService verifyCodeService;
+    private final UserService userService;
 
     /**
      * 获取验证码
@@ -109,7 +113,27 @@ public class AuthController {
      */
     @PostMapping("/register")
     public CommonResult<Map<String, Object>> register(@RequestBody Map<String, Object> requestBody) {
-        return null;
+        try {
+            //首先得判断验证码是否正确，先简单判断是否为123456
+            String verifyCode = (String) requestBody.get("verifyCode");
+            if (!verifyCode.equals("123456")) {
+                return new CommonResult<>(1, "验证码不正确");
+            }
+            //准备一个user准备插入到数据库中
+            User user = new User();
+            user.setUsername((String) requestBody.get("username"));
+            user.setPassword((String) requestBody.get("password"));
+            user.setPhoneNumber((String) requestBody.get("phoneNumber"));
+            user.setRegisterTime(new Date());
+            HashMap<String, String> environment = (HashMap) requestBody.get("environment");
+            user.setRegisterIp(environment.get("ip"));
+            user.setRegisterDeviceId(environment.get("deviceId"));
+            //插入
+            return userService.register(user);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new CommonResult<>(1, "未知错误");
+        }
     }
 
     /**
@@ -130,7 +154,8 @@ public class AuthController {
         return null;
     }
 
-    public AuthController(VerifyCodeService verifyCodeService) {
+    public AuthController(VerifyCodeService verifyCodeService, UserService userService) {
         this.verifyCodeService = verifyCodeService;
+        this.userService = userService;
     }
 }

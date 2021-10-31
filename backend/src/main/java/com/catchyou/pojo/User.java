@@ -12,7 +12,7 @@ import java.util.Date;
 public class User {
     private String id;
     private String username;
-    private String phone;
+    private String phoneNumber;
     private String password;
     private Date registerTime;
     private String registerIp;
