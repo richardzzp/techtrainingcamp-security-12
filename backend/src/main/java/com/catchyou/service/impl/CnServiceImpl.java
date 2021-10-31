@@ -4,7 +4,7 @@ import com.catchyou.dao.CnDao;
 import com.catchyou.pojo.CommonResult;
 import com.catchyou.pojo.User;
 import com.catchyou.service.CnService;
-import com.catchyou.util.EncodingUtil;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -26,7 +26,7 @@ public class CnServiceImpl implements CnService {
             return new CommonResult(1, "用户名重复了");
         }
         //密码需要加密
-        user.setPassword(EncodingUtil.encode(user.getPassword()));
+        user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()).substring(0, 50));
         //为用户设置一个uuid
         String uuid = UUID.randomUUID().toString();
         user.setId(uuid);
