@@ -16,5 +16,19 @@ export default{
             data:data
         })
 
-    }
+    },
+    loginWithAccount: data=>{
+        return request({
+            url: url+'/cn/loginWithUsername',
+            method:"post",
+            data:data
+        })
+    },
+    applyCode: data=>{
+        return request({
+            url: url+'/api/ljh/apply-code',
+            method:"post",
+            data:data
+        })
+    },
 }
