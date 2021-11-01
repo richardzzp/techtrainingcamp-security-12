@@ -1,11 +1,9 @@
 package com.catchyou.service;
 
-import com.catchyou.pojo.CommonResult;
+import com.catchyou.pojo.Log;
 import com.catchyou.pojo.User;
 
 public interface CnService {
-
-    Boolean checkVerifyCode(String phone, String code);
 
     Boolean checkUsernameExist(String username);
 
@@ -18,4 +16,11 @@ public interface CnService {
     String loginWithUsernameAfterCheck(String username, String ip, String deviceId);
 
     String loginWithPhoneAfterCheck(String phone, String ip, String deviceId);
+
+    Boolean logout(String uid);
+
+    Log[] getLoginRecordById(String uid);
+
+    User getUserById(String uid);
+
 }

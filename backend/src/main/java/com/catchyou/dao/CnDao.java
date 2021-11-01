@@ -18,4 +18,11 @@ public interface CnDao {
 
     //插入一条登录记录
     Integer insertLog(Log log);
+
+    //注销
+    Integer setActiveFalse(User user);
+
+    User getUserById(String Id);
+
+    Log[] getLoginRecordById(String Id);
 }

@@ -3,6 +3,7 @@ package com.catchyou.controller;
 import com.catchyou.pojo.CommonResult;
 import com.catchyou.pojo.VerifyCode;
 import com.catchyou.service.LjhVerifyCodeService;
+import com.catchyou.service.impl.CnServiceImpl;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +19,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class LjhAuthController {
     private final LjhVerifyCodeService verifyCodeService;
+    private final CnServiceImpl cnService;
 
     /**
      * 获取验证码
@@ -38,7 +40,11 @@ public class LjhAuthController {
      */
     @PostMapping("/apply-code")
     public CommonResult<Map<String, Object>> applyCode(@RequestBody Map<String, Object> requestBody) {
+        //判断手机是否存在
         String phoneNumber = (String) requestBody.get("phoneNumber");
+        if (!cnService.checkPhoneExist(phoneNumber)) {
+            return new CommonResult(1, "手机号不存在，获取验证码失败");
+        }
         Map<String, Object> environment = (Map<String, Object>) requestBody.get("environment");
         String ip = (String) requestBody.get("ip");
         String deviceId = (String) requestBody.get("deviceId");
