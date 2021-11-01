@@ -5,7 +5,7 @@ import com.catchyou.pojo.User;
 
 public interface CnService {
 
-    Boolean checkVerifyCode(String code);
+    Boolean checkVerifyCode(String phone, String code);
 
     Boolean checkUsernameExist(String username);
 
@@ -16,4 +16,6 @@ public interface CnService {
     Boolean checkUsernamePasswordMatch(String username, String password);
 
     String loginWithUsernameAfterCheck(String username, String ip, String deviceId);
+
+    String loginWithPhoneAfterCheck(String phone, String ip, String deviceId);
 }

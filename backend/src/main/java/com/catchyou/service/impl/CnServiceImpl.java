@@ -21,8 +21,8 @@ public class CnServiceImpl implements CnService {
     private CnDao cnDao;
 
     @Override
-    //判断验证码是否正确，目前先固定死123456
-    public Boolean checkVerifyCode(String code) {
+    //理应通过redis来验证，现在先固定死123456
+    public Boolean checkVerifyCode(String phone, String code) {
         if (code.equals("123456")) {
             return true;
         }
@@ -41,7 +41,7 @@ public class CnServiceImpl implements CnService {
 
     @Override
     public Boolean checkPhoneExist(String phone) {
-        User user = cnDao.getUserByName(phone);
+        User user = cnDao.getUserByPhone(phone);
         if (user != null) {
             return true;
         }
@@ -92,4 +92,12 @@ public class CnServiceImpl implements CnService {
         return user.getId();
     }
 
+    @Override
+    public String loginWithPhoneAfterCheck(String phone, String ip, String deviceId) {
+        User user = cnDao.getUserByPhone(phone);
+        //登录记录
+        Log log = new Log(null, user.getId(), new Date(), ip, deviceId);
+        cnDao.insertLog(log);
+        return user.getId();
+    }
 }
