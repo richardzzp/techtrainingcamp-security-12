@@ -44,7 +44,7 @@
                                 @keyup.enter.native="LoginSubmit()"
                             >
                                 <el-button slot="prepend" icon="el-icon-key"></el-button>
-                                <el-button slot="append" @click="getCode()">获取验证码{{codeText}}</el-button>
+                                <el-button slot="append" @click="getCode('login')" :disabled='codeDisabled'>获取验证码{{ codeText }}</el-button>
                             </el-input>
                         </el-form-item>
                         <div class="register-text">
@@ -80,13 +80,9 @@
                             </el-input>
                         </el-form-item>
                         <el-form-item prop="verifyCode">
-                            <el-input
-                                type="verifyCode"
-                                placeholder="verifyCode"
-                                v-model="registerParam.verifyCode"
-                            >
+                            <el-input type="verifyCode" placeholder="verifyCode" v-model="registerParam.verifyCode">
                                 <el-button slot="prepend" icon="el-icon-key"></el-button>
-                                <el-button slot="append">获取验证码{{codeText}}</el-button>
+                                <el-button slot="append" @click="getCode('register')" :disabled='codeDisabled'>获取验证码{{ codeText }}</el-button>
                             </el-input>
                         </el-form-item>
                         <div class="register-text">
@@ -104,21 +100,27 @@
 
 <script>
 import Fingerprint2 from 'fingerprintjs2';
-import Aips from '../../api/account'
+import Aips from '../../api/account';
 export default {
     data: function () {
         var validatePass2 = (rule, value, callback) => {
-        if (value === '') {
-          callback(new Error('请再次输入密码'));
-        } else if (value !== this.registerParam.password) {
-          callback(new Error('两次输入密码不一致!'));
-        } else {
-          callback();
-        }
-      };
+            if (value === '') {
+                callback(new Error('请再次输入密码'));
+            } else if (value !== this.registerParam.password) {
+                callback(new Error('两次输入密码不一致!'));
+            } else {
+                callback();
+            }
+        };
         return {
-            codeText:"",
-            codeTime:0,
+            verifyCode:"",
+            expireTime:"",
+            decisionType:"",
+            //发送验证码按钮禁用
+            codeDisabled:false,
+            //60秒倒计时用
+            codeText: '',
+            codeTime: 0,
             activeName: 'account',
             activeNameRegister: 'first',
             loginState: true,
@@ -139,7 +141,7 @@ export default {
                 passwordConfirm: [{ validator: validatePass2, trigger: 'blur' }],
                 phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
                 verifyCode: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
-            },
+            }
         };
     },
     created() {
@@ -162,65 +164,152 @@ export default {
     },
     methods: {
         LoginSubmit() {
-            this.$refs.account_login.validate((valid) => {
-                if (valid) {
-                    console.log(this.accountParam);
-                    this.$message.success('登录成功');
-                    localStorage.setItem('userName', this.accountParam.username);
-                    this.$router.push('/');
-                } else {
-                    this.$message.error('请输入账号和密码');
-                    console.log('error submit!!');
-                    return false;
-                }
-            });
+            if (this.activeName == 'account') {
+                //账号登录
+                this.$refs.account_login.validate((valid) => {
+                    if (valid) {
+                        var data = {
+                            username: this.accountParam.username,
+                            password: this.accountParam.password,
+                            environment: {
+                                ip: localStorage.getItem('ip'),
+                                deviceId: localStorage.getItem('deviceID')
+                            }
+                        };
+                        Aips.loginWithAccount(data).then((res) => {
+                            if (res.code == 0) {
+                                //成功
+                                this.$message.success(res.message);
+                                localStorage.setItem('sessionId', res.data.sessionId);
+                                console.log(res.data.sessionId);
+                                this.$message.success('登录成功');
+                                localStorage.setItem('userName', this.accountParam.username);
+                                this.accountParam = {};
+                                this.$router.push('/');
+                            } else {
+                                this.$message.error(res.message);
+                            }
+                        });
+                        console.log(this.accountParam);             
+                    } else {
+                        this.$message.error('请输入账号和密码');
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            }
         },
         registerSubmit() {
-            this.$refs.register.validate((valid)=>{
+            this.$refs.register.validate((valid) => {
+                //验证码检查错误
+                if(!this.validateCode(this.registerParam.verifyCode)){
+                    return 0
+                }
                 if (valid) {
-                    var data={
-                        username:this.registerParam.username,
-                        password:this.registerParam.password,
-                        phoneNumber:this.registerParam.phone,
-                        verifyCode:this.registerParam.verifyCode,
-                        environment:{
-                            ip:localStorage.getItem('ip'),
-                            deviceId:localStorage.getItem('deviceID')
+                    var data = {
+                        username: this.registerParam.username,
+                        password: this.registerParam.password,
+                        phoneNumber: this.registerParam.phone,
+                        verifyCode: this.registerParam.verifyCode,
+                        environment: {
+                            ip: localStorage.getItem('ip'),
+                            deviceId: localStorage.getItem('deviceID')
                         }
-                    }
-                    Aips.register(data).then((res)=>{
-                        if(res.code==0){
+                    };
+                    Aips.register(data).then((res) => {
+                        if (res.code == 0) {
                             //成功
-                            this.$message.success(res.message)
-                            localStorage.setItem('sessionId',res.data.sessionId)
-                            console.log(res.data.sessionId)
-                            this.registerParam={}
-                            this.loginState=true
-                        }else{
-                            this.$message.error(res.message)
+                            this.$message.success(res.message);
+                            localStorage.setItem('sessionId', res.data.sessionId);
+                            console.log(res.data.sessionId);
+                            this.registerParam = {};
+                            this.loginState = true;
+                        } else {
+                            this.$message.error(res.message);
                         }
-                    })
-                    console.log(data)
+                    });
+                    console.log(data);
                 } else {
                     this.$message.error('请检查注册信息');
                     console.log('error submit!!');
                     return false;
                 }
-            })
+            });
         },
-        getCode(){
-            this.codeTime=10
-            this.codeText='('+this.codeTime+')'
-            this.time=setInterval(this.timer,1000)
-        },
-        timer(){
-            this.codeTime-=1
-            if(this.codeTime!=0){
-                this.codeText='('+this.codeTime+')'
+        getCode(type) {
+            var data = {
+                environment: {
+                    ip: localStorage.getItem('ip'),
+                    deviceId: localStorage.getItem('deviceID')
+                }
+            };
+            if(type=='login'){
+                if(this.checkPhone(this.phoneParam.phone)){
+                    data.phoneNumber=this.accountParam.phone
+                }else{
+                    return 0
+                }
             }else{
-                this.codeText=""
-                clearInterval(this.time)
+                if(this.checkPhone(this.registerParam.phone)){
+                    data.phoneNumber=this.registerParam.phone
+                }else{
+                    return 0
+                }
             }
+            Aips.applyCode(data).then(res=>{
+                if (res.code == 0) {
+                    //成功
+                    this.decisionType=res.data.decisionType
+                    if(this.decisionType==0){
+                        this.$message.success(res.message);
+                        this.verifyCode=res.data.verifyCode
+                        this.expireTime=res.data.expireTime
+                        console.log(res.data)
+                    }     
+                } else {
+                    this.$message.error(res.message);
+                }
+            })
+            //按钮字改变，禁用
+            this.codeTime = 60;
+            this.codeDisabled=true
+            this.codeText = '(' + this.codeTime + ')';
+            this.time = setInterval(this.timer, 1000);
+        },
+        timer() {
+            this.codeTime -= 1;
+            if (this.codeTime != 0) {
+                this.codeText = '(' + this.codeTime + ')';
+            } else {
+                this.codeText = '';
+                this.codeDisabled=false
+                clearInterval(this.time);
+            }
+        },
+        checkPhone(phone){ 
+            if(!(/^1[34578]\d{9}$/.test(phone))){
+                this.$message.error('手机号格式错误') 
+                return false; 
+            } 
+            return true
+        },
+        //检验验证码
+        validateCode(value){
+            ////////////////////后面要删除123456
+            if(value=="123456"){
+                return true
+            }
+            if (value === '') {
+                this.$message.error('请输入验证码')
+                return false
+            } else if (new Date(this.expireTime).getTime()<new Date().getTime()) {
+                this.$message.error('验证码已过期')
+                return false
+            } else if(this.verifyCode!=value){
+                this.$message.error('验证码错误')
+                return false
+            } 
+            return true
         }
     }
 };
@@ -264,7 +353,6 @@ export default {
     overflow: hidden;
 }
 .ms-content {
-
 }
 .login-btn {
     text-align: center;
