@@ -24,6 +24,13 @@ export default{
             data:data
         })
     },
+    loginWithPhone: data=>{
+        return request({
+            url: url+'/cn/loginWithPhone',
+            method:"post",
+            data:data
+        })
+    },
     applyCode: data=>{
         return request({
             url: url+'/api/ljh/apply-code',

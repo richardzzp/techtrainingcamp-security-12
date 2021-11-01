@@ -190,7 +190,43 @@ export default {
                                 this.$message.error(res.message);
                             }
                         });
-                        console.log(this.accountParam);             
+                        console.log(data);             
+                    } else {
+                        this.$message.error('请输入账号和密码');
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            }else{
+                //手机号登录
+                this.$refs.phone_login.validate((valid) => {
+                    if(!this.validateCode(this.phoneParam.verifyCode)){
+                        return 0
+                    }
+                    if (valid) {
+                        var data = {
+                            phoneNumber: this.phoneParam.phone,
+                            verifyCode: this.phoneParam.verifyCode,
+                            environment: {
+                                ip: localStorage.getItem('ip'),
+                                deviceId: localStorage.getItem('deviceID')
+                            }
+                        };
+                        Aips.loginWithPhone(data).then((res) => {
+                            if (res.code == 0) {
+                                //成功
+                                this.$message.success(res.message);
+                                localStorage.setItem('sessionId', res.data.sessionId);
+                                console.log(res.data.sessionId);
+                                this.$message.success('登录成功');
+                                localStorage.setItem('userName', '暂无返回值');
+                                this.accountParam = {};
+                                this.$router.push('/');
+                            } else {
+                                this.$message.error(res.message);
+                            }
+                        });
+                        console.log(data);             
                     } else {
                         this.$message.error('请输入账号和密码');
                         console.log('error submit!!');
@@ -287,6 +323,7 @@ export default {
             }
         },
         checkPhone(phone){ 
+            //检查手机号格式
             if(!(/^1[34578]\d{9}$/.test(phone))){
                 this.$message.error('手机号格式错误') 
                 return false; 
