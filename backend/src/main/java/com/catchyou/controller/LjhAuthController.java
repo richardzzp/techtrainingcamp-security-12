@@ -40,11 +40,23 @@ public class LjhAuthController {
      */
     @PostMapping("/apply-code")
     public CommonResult<Map<String, Object>> applyCode(@RequestBody Map<String, Object> requestBody) {
-        //判断手机是否存在
+
         String phoneNumber = (String) requestBody.get("phoneNumber");
-        if (!cnService.checkPhoneExist(phoneNumber)) {
-            return new CommonResult(1, "手机号不存在，获取验证码失败");
+
+        //type=1，登录；type=2，注册
+        Integer type = (Integer) requestBody.get("type");
+        if (type == 1) {
+            if (!cnService.checkPhoneExist(phoneNumber)) {
+                return new CommonResult(1, "手机号不存在");
+            }
+        } else if (type == 2) {
+            if (cnService.checkPhoneExist(phoneNumber)) {
+                return new CommonResult(1, "手机号重复了");
+            }
+        } else {
+            return new CommonResult(1, "请携带type参数");
         }
+
         Map<String, Object> environment = (Map<String, Object>) requestBody.get("environment");
         String ip = (String) requestBody.get("ip");
         String deviceId = (String) requestBody.get("deviceId");

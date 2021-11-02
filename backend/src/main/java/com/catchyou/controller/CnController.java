@@ -24,7 +24,7 @@ public class CnController {
     @PostMapping("/cn/register")
     public CommonResult register(@RequestBody HashMap<String, Object> map) {
         try {
-            //判断手机是否已经存在（理应在发送验证码的时候就已经做了）
+            //判断手机号是否重复（发验证码的时候其实也做过了）
             String phoneNumber = (String) map.get("phoneNumber");
             if (cnService.checkPhoneExist(phoneNumber)) {
                 return new CommonResult(1, "手机号重复了，注册失败");
@@ -34,7 +34,7 @@ public class CnController {
             if (!ljhVerifyCodeService.checkVerifyCode(phoneNumber, verifyCode)) {
                 return new CommonResult(1, "验证码不正确，注册失败");
             }
-            //判断用户名是否已经存在
+            //判断用户名是否重复
             String username = (String) map.get("username");
             if (cnService.checkUsernameExist(username)) {
                 return new CommonResult(1, "用户名重复了，注册失败");
@@ -96,7 +96,7 @@ public class CnController {
     @PostMapping("/cn/loginWithPhone")
     public CommonResult loginWithPhone(@RequestBody HashMap<String, Object> map) {
         try {
-            //判断手机号是否已经存在（在发送验证码的时候其实就做过这一步了）
+            //判断手机号是否存在（发验证码的时候其实也做过了）
             String phoneNumber = (String) map.get("phoneNumber");
             if (!cnService.checkPhoneExist(phoneNumber)) {
                 return new CommonResult(1, "手机号不存在");
