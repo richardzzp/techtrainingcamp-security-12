@@ -149,7 +149,7 @@ public class AuthController {
     /**
      * 注册
      * @param requestBody
-     * userName     //用户名
+     * username     //用户名
      * password     //密码
      * phoneNumber
      * verifyCode

@@ -16,7 +16,7 @@ import java.util.*;
  */
 @Service
 public class VerifyCodeService {
-    private static final Duration EXPIRE_TIME = Duration.ofMinutes(3);
+    private static final Duration EXPIRE_TIME = Duration.ofSeconds(10);
     //限制一分钟内不能再次发送短信
     private static final Duration LIMIT_TIME = Duration.ofMinutes(1);
 
@@ -50,10 +50,15 @@ public class VerifyCodeService {
      * @return 若验证码有效则返回true，否则返回false
      */
     public boolean checkVerifyCode(String phoneNumber, String code) {
-        String validVerifyCode = (String) redisTemplate.opsForValue().get("verify_code_" + phoneNumber);
+        String key = "verify_code_" + phoneNumber;
+        String validVerifyCode = (String) redisTemplate.opsForValue().get(key);
         if (validVerifyCode == null) {
             return false;
         }
-        return code.equals(validVerifyCode);
+        if (code.equals(validVerifyCode)) {
+            redisTemplate.delete(key);
+            return true;
+        }
+        return false;
     }
 }
