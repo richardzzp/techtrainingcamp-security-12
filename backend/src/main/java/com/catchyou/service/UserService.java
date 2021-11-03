@@ -1,13 +1,12 @@
 package com.catchyou.service;
 
 import com.catchyou.dao.UserDao;
-import com.catchyou.pojo.CommonResult;
+import com.catchyou.pojo.Log;
 import com.catchyou.pojo.User;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Date;
 import java.util.UUID;
 
 @Service
@@ -18,25 +17,83 @@ public class UserService {
         this.userDao = userDao;
     }
 
-    public CommonResult<Map<String, Object>> register(User user) {
-        //判断有无重复的用户名
-        User userByName = userDao.getUserByName(user.getUsername());
-        if (userByName != null) {
-            return new CommonResult<>(1, "用户名重复了");
+    public Boolean checkUsernameExist(String username) {
+        User user = userDao.getUserByName(username);
+        if (user != null) {
+            return true;
         }
+        return false;
+    }
+
+    public Boolean checkPhoneExist(String phone) {
+        User user = userDao.getUserByPhone(phone);
+        if (user != null) {
+            return true;
+        }
+        return false;
+    }
+
+    public String registerAfterCheck(User user) {
         //密码需要加密
-        user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()).substring(0, 50));
+        user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
         //为用户设置一个uuid
         String uuid = UUID.randomUUID().toString();
         user.setId(uuid);
         //插入到数据库中
         System.out.println(user);
-        userDao.insertUser(user);
-        //需要返回的一些信息（目前不清楚具体用途，先在这里随便写着）
-        HashMap<String, Object> data = new HashMap<>();
-        data.put("sessionId", uuid);
-        data.put("expireTime", 0);
-        data.put("decisionType", 0);
-        return new CommonResult<>(0, "注册成功", data);
+        Integer res = userDao.insertUser(user);
+        if (res == 0) {
+            //插入失败返回null
+            return null;
+        }
+        //登录记录
+        Log log = new Log(null, user.getId(), new Date(), user.getRegisterIp(), user.getRegisterDeviceId());
+        userDao.insertLog(log);
+        //插入成功返回uuid
+        return uuid;
+    }
+
+    public Boolean checkUsernamePasswordMatch(String username, String password) {
+        User user = userDao.getUserByName(username);
+        if (user == null) {
+            return false;
+        }
+        if (!BCrypt.checkpw(password, user.getPassword())) {
+            return false;
+        }
+        return true;
+    }
+
+    public String loginWithUsernameAfterCheck(String username, String ip, String deviceId) {
+        User user = userDao.getUserByName(username);
+        //登录记录
+        Log log = new Log(null, user.getId(), new Date(), ip, deviceId);
+        userDao.insertLog(log);
+        return user.getId();
+    }
+
+    public String loginWithPhoneAfterCheck(String phone, String ip, String deviceId) {
+        User user = userDao.getUserByPhone(phone);
+        //登录记录
+        Log log = new Log(null, user.getId(), new Date(), ip, deviceId);
+        userDao.insertLog(log);
+        return user.getId();
+    }
+
+    public Boolean logout(String uid) {
+        User user = userDao.getUserById(uid);
+        Integer res = userDao.setActiveFalse(user);
+        if (res == 0) {
+            return false;
+        }
+        return true;
+    }
+
+    public Log[] getLoginRecordById(String uid) {
+        return userDao.getLoginRecordById(uid);
+    }
+
+    public User getUserById(String uid) {
+        return userDao.getUserById(uid);
     }
 }

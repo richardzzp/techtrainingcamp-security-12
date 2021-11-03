@@ -5,7 +5,29 @@
         insert into auth.user (id, username, phone_number, password, register_time, register_ip, register_device_id, is_active)
         VALUES (#{id}, #{username}, #{phoneNumber}, #{password}, #{registerTime}, #{registerIp}, #{registerDeviceId}, 1);
     </insert>
+
     <select id="getUserByName" resultType="User">
-        select * from auth.user where username = #{username};
+        select * from auth.user where username = #{username} and is_active = 1;
+    </select>
+
+    <select id="getUserByPhone" resultType="User">
+        select * from auth.user where phone_number = #{phoneNumber} and is_active = 1;
+    </select>
+
+    <insert id="insertLog" parameterType="Log">
+        insert into auth.log (uid, time, ip, device_id)
+        VALUES (#{uid},#{time},#{ip},#{deviceId});
+    </insert>
+
+    <update id="setActiveFalse" parameterType="User">
+        update auth.user set is_active = 0 where id = #{id};
+    </update>
+
+    <select id="getUserById" resultType="User">
+        select * from auth.user where id = #{id} and is_active = 1;
+    </select>
+
+    <select id="getLoginRecordById" resultType="Log">
+        select * from auth.log where uid = #{uid};
     </select>
 </mapper>
