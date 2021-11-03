@@ -21,6 +21,9 @@
                                 <el-button slot="prepend" icon="el-icon-lx-lock"></el-button>
                             </el-input>
                         </el-form-item>
+                        <el-form-item v-if="showSlider">
+                            <JcRange status="status"></JcRange>
+                        </el-form-item>
                         <div class="register-text">
                             <el-link type="danger" @click="loginState = false">还没有账号？</el-link>
                         </div>
@@ -44,8 +47,13 @@
                                 @keyup.enter.native="LoginSubmit()"
                             >
                                 <el-button slot="prepend" icon="el-icon-key"></el-button>
-                                <el-button slot="append" @click="getCode('login')" :disabled='codeDisabled'>获取验证码{{ codeText }}</el-button>
+                                <el-button slot="append" @click="getCode('login')" :disabled="codeDisabled"
+                                    >获取验证码{{ codeText }}</el-button
+                                >
                             </el-input>
+                        </el-form-item>
+                        <el-form-item v-if="showSlider">
+                            <JcRange status="status"></JcRange>
                         </el-form-item>
                         <div class="register-text">
                             <el-link type="danger" @click="loginState = false">还没有账号？</el-link>
@@ -82,8 +90,13 @@
                         <el-form-item prop="verifyCode">
                             <el-input type="verifyCode" placeholder="verifyCode" v-model="registerParam.verifyCode">
                                 <el-button slot="prepend" icon="el-icon-key"></el-button>
-                                <el-button slot="append" @click="getCode('register')" :disabled='codeDisabled'>获取验证码{{ codeText }}</el-button>
+                                <el-button slot="append" @click="getCode('register')" :disabled="codeDisabled"
+                                    >获取验证码{{ codeText }}</el-button
+                                >
                             </el-input>
+                        </el-form-item>
+                        <el-form-item v-if="showSlider">
+                            <JcRange></JcRange>
                         </el-form-item>
                         <div class="register-text">
                             <el-link type="primary" @click="loginState = true">返回登录</el-link>
@@ -101,6 +114,8 @@
 <script>
 import Fingerprint2 from 'fingerprintjs2';
 import Aips from '../../api/account';
+import JcRange from '../common/slider.vue';
+import Bus from '../common/bus'
 export default {
     data: function () {
         var validatePass2 = (rule, value, callback) => {
@@ -113,11 +128,13 @@ export default {
             }
         };
         return {
-            verifyCode:"",
-            expireTime:"",
-            decisionType:"",
+            showSlider: false,
+            sliderStatus: false,
+            verifyCode: '',
+            expireTime: '',
+            decisionType: '',
             //发送验证码按钮禁用
-            codeDisabled:false,
+            codeDisabled: false,
             //60秒倒计时用
             codeText: '',
             codeTime: 0,
@@ -144,6 +161,16 @@ export default {
             }
         };
     },
+    components: {
+        JcRange
+    },
+    computed: {},
+    mounted(){
+        Bus.$on('sliderChange',(data)=>{
+            this.sliderStatus=data
+        })
+    }
+    ,
     created() {
         console.log(localStorage.getItem('ip'));
         localStorage.setItem('ip', returnCitySN['cip']);
@@ -161,9 +188,17 @@ export default {
             console.log('浏览器指纹码：' + murmur);
             localStorage.setItem('deviceID', murmur);
         });
+        if (localStorage.getItem('decisionType') >= 1) {
+            this.showSlider = true;
+        } else {
+            this.showSlider = false;
+        }
     },
     methods: {
         LoginSubmit() {
+            if (!this.checkDecisionType()) {
+                return 0;
+            }
             if (this.activeName == 'account') {
                 //账号登录
                 this.$refs.account_login.validate((valid) => {
@@ -177,6 +212,7 @@ export default {
                             }
                         };
                         Aips.loginWithAccount(data).then((res) => {
+                            this.changeDecisionType(res.data.decisionType)
                             if (res.code == 0) {
                                 //成功
                                 this.$message.success(res.message);
@@ -190,18 +226,18 @@ export default {
                                 this.$message.error(res.message);
                             }
                         });
-                        console.log(data);             
+                        console.log(data);
                     } else {
                         this.$message.error('请输入账号和密码');
                         console.log('error submit!!');
                         return false;
                     }
                 });
-            }else{
+            } else {
                 //手机号登录
                 this.$refs.phone_login.validate((valid) => {
-                    if(!this.validateCode(this.phoneParam.verifyCode)){
-                        return 0
+                    if (!this.validateCode(this.phoneParam.verifyCode)) {
+                        return 0;
                     }
                     if (valid) {
                         var data = {
@@ -213,20 +249,21 @@ export default {
                             }
                         };
                         Aips.loginWithPhone(data).then((res) => {
+                            this.changeDecisionType(res.data.decisionType)
                             if (res.code == 0) {
                                 //成功
                                 this.$message.success(res.message);
                                 localStorage.setItem('sessionId', res.data.sessionId);
                                 console.log(res.data.sessionId);
-                                this.$message.success('登录成功');
-                                localStorage.setItem('userName', '暂无返回值');
+                                // this.$message.success('登录成功');
+                                localStorage.setItem('userName', '...');
                                 this.accountParam = {};
                                 this.$router.push('/');
                             } else {
                                 this.$message.error(res.message);
                             }
                         });
-                        console.log(data);             
+                        console.log(data);
                     } else {
                         this.$message.error('请输入账号和密码');
                         console.log('error submit!!');
@@ -236,10 +273,13 @@ export default {
             }
         },
         registerSubmit() {
+            if (!this.checkDecisionType()) {
+                return 0;
+            }
             this.$refs.register.validate((valid) => {
                 //验证码检查错误
-                if(!this.validateCode(this.registerParam.verifyCode)){
-                    return 0
+                if (!this.validateCode(this.registerParam.verifyCode)) {
+                    return 0;
                 }
                 if (valid) {
                     var data = {
@@ -253,13 +293,16 @@ export default {
                         }
                     };
                     Aips.register(data).then((res) => {
+                        this.changeDecisionType(res.data.decisionType)
                         if (res.code == 0) {
                             //成功
                             this.$message.success(res.message);
                             localStorage.setItem('sessionId', res.data.sessionId);
                             console.log(res.data.sessionId);
+                            localStorage.setItem('userName', '...');
                             this.registerParam = {};
                             this.loginState = true;
+                            this.$router.push('/');
                         } else {
                             this.$message.error(res.message);
                         }
@@ -273,42 +316,46 @@ export default {
             });
         },
         getCode(type) {
+            if (!this.checkDecisionType()) {
+                return 0;
+            }
             var data = {
                 environment: {
                     ip: localStorage.getItem('ip'),
                     deviceId: localStorage.getItem('deviceID')
                 }
             };
-            if(type=='login'){
-                if(this.checkPhone(this.phoneParam.phone)){
-                    data.phoneNumber=this.accountParam.phone
-                }else{
-                    return 0
+            if (type == 'login') {
+                if (this.checkPhone(this.phoneParam.phone)) {
+                    data.phoneNumber = this.phoneParam.phone;
+                    data.type = 1;
+                } else {
+                    return 0;
                 }
-            }else{
-                if(this.checkPhone(this.registerParam.phone)){
-                    data.phoneNumber=this.registerParam.phone
-                }else{
-                    return 0
+            } else {
+                if (this.checkPhone(this.registerParam.phone)) {
+                    data.type = 2;
+                    data.phoneNumber = this.registerParam.phone;
+                } else {
+                    return 0;
                 }
             }
-            Aips.applyCode(data).then(res=>{
+            Aips.applyCode(data).then((res) => {
+                this.changeDecisionType(res.data.decisionType)
                 if (res.code == 0) {
                     //成功
-                    this.decisionType=res.data.decisionType
-                    if(this.decisionType==0){
-                        this.$message.success(res.message);
-                        this.verifyCode=res.data.verifyCode
-                        this.expireTime=res.data.expireTime
-                        console.log(res.data)
-                    }     
+                    this.decisionType = res.data.decisionType;
+                    this.$message.success(res.message);
+                    this.verifyCode = res.data.verifyCode;
+                    this.expireTime = new Date().getTime() + res.data.expireTime * 1000;
+                    console.log(res.data);
                 } else {
                     this.$message.error(res.message);
                 }
-            })
+            });
             //按钮字改变，禁用
             this.codeTime = 60;
-            this.codeDisabled=true
+            this.codeDisabled = true;
             this.codeText = '(' + this.codeTime + ')';
             this.time = setInterval(this.timer, 1000);
         },
@@ -318,35 +365,60 @@ export default {
                 this.codeText = '(' + this.codeTime + ')';
             } else {
                 this.codeText = '';
-                this.codeDisabled=false
+                this.codeDisabled = false;
                 clearInterval(this.time);
             }
         },
-        checkPhone(phone){ 
+        checkPhone(phone) {
             //检查手机号格式
-            if(!(/^1[34578]\d{9}$/.test(phone))){
-                this.$message.error('手机号格式错误') 
-                return false; 
-            } 
-            return true
+            if (!/^1[34578]\d{9}$/.test(phone)) {
+                this.$message.error('手机号格式错误');
+                return false;
+            }
+            return true;
         },
         //检验验证码
-        validateCode(value){
+        validateCode(value) {
             ////////////////////后面要删除123456
-            if(value=="123456"){
-                return true
-            }
             if (value === '') {
-                this.$message.error('请输入验证码')
-                return false
-            } else if (new Date(this.expireTime).getTime()<new Date().getTime()) {
-                this.$message.error('验证码已过期')
-                return false
-            } else if(this.verifyCode!=value){
-                this.$message.error('验证码错误')
-                return false
-            } 
-            return true
+                this.$message.error('请输入验证码');
+                return false;
+            } else if (this.expireTime < new Date().getTime()) {
+                this.$message.error('验证码已过期');
+                return false;
+            } else if (this.verifyCode != value) {
+                this.$message.error('验证码错误');
+                return false;
+            }
+            return true;
+        },
+        //检查状态
+        checkDecisionType() {
+            let type = localStorage.getItem('decisionType');
+            if (!type || type == 0) {
+                return true;
+            } else if (type == 1) {
+                //检查滑块
+                if (this.sliderStatus) return true;
+                else {
+                    this.$message.error('请进行滑块验证');
+                    return false;
+                }
+            } else if (type == 2) {
+                this.$message.error('请求过于繁忙，请稍后重试');
+                return false;
+            } else {
+                this.$message.error('您已被禁止发送请求');
+                return false;
+            }
+        },
+        changeDecisionType(decisionType){
+            localStorage.setItem('decisionType', decisionType);
+            if (localStorage.getItem('decisionType') >= 1) {
+                this.showSlider = true;
+            } else {
+                this.showSlider = false;
+            }
         }
     }
 };

@@ -25,7 +25,8 @@
                         <i class="el-icon-caret-bottom"></i>
                     </span>
                     <el-dropdown-menu slot="dropdown">
-                        <el-dropdown-item divided command="loginout">退出登录</el-dropdown-item>
+                        <el-dropdown-item divided command="2">注销账号</el-dropdown-item>
+                        <el-dropdown-item divided command="1">退出登录</el-dropdown-item>
                     </el-dropdown-menu>
                 </el-dropdown>
             </div>
@@ -34,28 +35,61 @@
 </template>
 <script>
 import bus from '../common/bus';
+import Aips from '../../api/account';
 export default {
     data() {
         return {
             collapse: false,
             fullscreen: false,
             name: 'linxin',
-            message: 2
+            message: 2,
+            username:'...'
         };
     },
     computed: {
-        username() {
-            let username = localStorage.getItem('userName');
-            return username ? username : this.name;
-        }
+    },
+    created(){
+        this.getUser()
     },
     methods: {
-        // 用户名下拉菜单选择事件
-        handleCommand(command) {
-            if (command == 'loginout') {
-                localStorage.clear()
-                this.$router.push('/login');
+        getUser(){
+            let data={
+                sessionId:localStorage.getItem('sessionId'),
+                environment: {
+                    ip: localStorage.getItem('ip'),
+                    deviceId: localStorage.getItem('deviceID')
+                }
             }
+            Aips.getUser(data).then(res=>{
+                if(res.code==0){
+                    localStorage.setItem('userName',res.data.username)
+                    this.username=res.data.username
+                }else{
+                    this.$message.error('用户信息获取失败');
+                }
+            })
+        }
+        ,
+        // 用户名下拉菜单选择事件
+        handleCommand(actionType) {
+            //1 退出 2 注销
+            let data={
+                sessionId:localStorage.getItem('sessionId'),
+                actionType:actionType,
+                environment: {
+                    ip: localStorage.getItem('ip'),
+                    deviceId: localStorage.getItem('deviceID')
+                }
+            }
+            Aips.logout(data).then(res=>{
+                if(res.code==0){
+                    this.$message.success(res.message)
+                    localStorage.clear()
+                    this.$router.push('/login');
+                }else{
+                    this.$message.error('请求失败');
+                }
+            })
         },
         // 侧边栏折叠
         collapseChage() {

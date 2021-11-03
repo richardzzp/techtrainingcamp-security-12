@@ -38,4 +38,25 @@ export default{
             data:data
         })
     },
+    getUser: data=>{
+        return request({
+            url: url+'/cn/getUser',
+            method:"post",
+            data:data
+        })
+    },
+    getLoginRecord: data=>{
+        return request({
+            url: url+'/cn/getLoginRecord',
+            method:"post",
+            data:data
+        })
+    },
+    logout: data=>{
+        return request({
+            url: url+'/cn/logout',
+            method:"post",
+            data:data
+        })
+    },
 }
