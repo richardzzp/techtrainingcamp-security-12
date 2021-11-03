@@ -1,7 +1,6 @@
 package com.catchyou.controller;
 
 import com.catchyou.pojo.CommonResult;
-import com.catchyou.pojo.VerifyCode;
 import com.catchyou.service.LjhVerifyCodeService;
 import com.catchyou.service.impl.CnServiceImpl;
 import lombok.AllArgsConstructor;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,13 +59,16 @@ public class LjhAuthController {
         String ip = (String) requestBody.get("ip");
         String deviceId = (String) requestBody.get("deviceId");
 
-        VerifyCode verifyCode = verifyCodeService.generateVerifyCode(phoneNumber);
+        String verifyCode = verifyCodeService.generateVerifyCode(phoneNumber);
+        int code = verifyCode != null ? 0 : 1;
+        String message = code == 0 ? "请求成功" : "请求失败";
+        int decisionType = verifyCode != null ? 0 : 2;
 
-        CommonResult<Map<String, Object>> responseBody = new CommonResult<>(0, "请求成功");
+        CommonResult<Map<String, Object>> responseBody = new CommonResult<>(code, message);
         Map<String, Object> data = new HashMap<>();
-        data.put("verifyCode", verifyCode.getCode());
-        data.put("expireTime", verifyCode.getExpireTime());
-        data.put("decisionType", 0);
+        data.put("verifyCode", verifyCode);
+        data.put("expireTime", 3 * 60);
+        data.put("decisionType", decisionType);
         responseBody.setData(data);
 
         return responseBody;
