@@ -22,6 +22,7 @@ public class LjhAuthController {
     /**
      * 获取验证码
      * @param requestBody
+     * Type 指定该验证码是用来注册还是用来登录的 1表示登录 2表示注册
      * PhoneNumber    //手机号
      * Environment{
      *     IP         //IP
@@ -33,46 +34,46 @@ public class LjhAuthController {
      * Data{
      *     VerifyCode     //6位随机的数字
      *     ExpireTime     //验证码过期的时间，例如有效期3分钟，这个时间可以自行设定
-     *     DecisionType   //0表示正常下发验证码，1表示需要用户通过滑块验证，通过后才能请求验证码，2表示需要用户过一段时间，才能重试获取验证码，3表示对这个用户不下发验证码
+     *     DecisionType   //0表示正常下发验证码，1表示需要用户通过滑块验证，
+     *                      通过后才能请求验证码，2表示需要用户过一段时间，才能重试获取验证码，3表示对这个用户不下发验证码
      * }
      */
     @PostMapping("/apply-code")
     public CommonResult<Map<String, Object>> applyCode(@RequestBody Map<String, Object> requestBody) {
-
         String phoneNumber = (String) requestBody.get("phoneNumber");
-
-        //type=1，登录；type=2，注册
         Integer type = (Integer) requestBody.get("type");
-        if (type == 1) {
-            if (!cnService.checkPhoneExist(phoneNumber)) {
-                return new CommonResult(1, "手机号不存在");
-            }
-        } else if (type == 2) {
-            if (cnService.checkPhoneExist(phoneNumber)) {
-                return new CommonResult(1, "手机号重复了");
-            }
+
+        int code = 1;
+        String message = "请求成功";
+        String verifyCode = null;
+        int expireTime = 180;
+        int decisionType = 0;
+
+        if (type == 1 && !cnService.checkPhoneExist(phoneNumber)) {
+            message = "手机号不存在";
+            decisionType = 3;
+        } else if (type == 2 && cnService.checkPhoneExist(phoneNumber)) {
+            message = "手机号已被注册";
+            decisionType = 3;
+        } else if (verifyCodeService.withinOneMinute(phoneNumber)) {
+            message = "验证码请求过于频繁";
+            decisionType = 2;
+        } else if (verifyCodeService.isFrequentRequest(phoneNumber)) {
+            message = "需要进行滑块验证";
+            decisionType = 1;
+            verifyCodeService.recountRequest(phoneNumber);
         } else {
-            return new CommonResult(1, "请携带type参数");
+            code = 0;
+            verifyCode = verifyCodeService.generateVerifyCode(phoneNumber);
         }
 
-        Map<String, Object> environment = (Map<String, Object>) requestBody.get("environment");
-        String ip = (String) requestBody.get("ip");
-        String deviceId = (String) requestBody.get("deviceId");
+        System.out.println("验证码为" + verifyCode);
 
-        String verifyCode = verifyCodeService.generateVerifyCode(phoneNumber);
-        int code = verifyCode != null ? 0 : 1;
-        String message = code == 0 ? "请求成功" : "验证码请求过于频繁";
-        int decisionType = verifyCode != null ? 0 : 2;
-
-        CommonResult<Map<String, Object>> responseBody = new CommonResult<>(code, message);
         Map<String, Object> data = new HashMap<>();
-        System.out.println("验证码为"+verifyCode);
         data.put("verifyCode", verifyCode);
-        data.put("expireTime", 3 * 60);
+        data.put("expireTime", expireTime);
         data.put("decisionType", decisionType);
-        responseBody.setData(data);
-
-        return responseBody;
+        return new CommonResult<>(code, message, data);
     }
 
     /**
