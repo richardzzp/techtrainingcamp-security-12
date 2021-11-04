@@ -61,7 +61,7 @@ public class LjhAuthController {
 
         String verifyCode = verifyCodeService.generateVerifyCode(phoneNumber);
         int code = verifyCode != null ? 0 : 1;
-        String message = code == 0 ? "请求成功" : "请求失败";
+        String message = code == 0 ? "请求成功" : "验证码请求过于频繁";
         int decisionType = verifyCode != null ? 0 : 2;
 
         CommonResult<Map<String, Object>> responseBody = new CommonResult<>(code, message);
