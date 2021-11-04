@@ -12,6 +12,10 @@ export default{
     register: data=>{
         return request({
             url: url+'/cn/register',
+            headers:{
+                'ip':data.environment.ip,
+                'deviceId':data.environment.deviceId
+            },
             method: "post",
             data:data
         })
@@ -20,6 +24,10 @@ export default{
     loginWithAccount: data=>{
         return request({
             url: url+'/cn/loginWithUsername',
+            headers:{
+                'ip':data.environment.ip,
+                'deviceId':data.environment.deviceId
+            },
             method:"post",
             data:data
         })
@@ -27,6 +35,10 @@ export default{
     loginWithPhone: data=>{
         return request({
             url: url+'/cn/loginWithPhone',
+            headers:{
+                'ip':data.environment.ip,
+                'deviceId':data.environment.deviceId
+            },
             method:"post",
             data:data
         })
@@ -34,6 +46,10 @@ export default{
     applyCode: data=>{
         return request({
             url: url+'/api/ljh/apply-code',
+            headers:{
+                'ip':data.environment.ip,
+                'deviceId':data.environment.deviceId
+            },
             method:"post",
             data:data
         })
@@ -41,6 +57,10 @@ export default{
     getUser: data=>{
         return request({
             url: url+'/cn/getUser',
+            headers:{
+                'ip':data.environment.ip,
+                'deviceId':data.environment.deviceId
+            },
             method:"post",
             data:data
         })
@@ -48,6 +68,10 @@ export default{
     getLoginRecord: data=>{
         return request({
             url: url+'/cn/getLoginRecord',
+            headers:{
+                'ip':data.environment.ip,
+                'deviceId':data.environment.deviceId
+            },
             method:"post",
             data:data
         })
@@ -55,6 +79,10 @@ export default{
     logout: data=>{
         return request({
             url: url+'/cn/logout',
+            headers:{
+                'ip':data.environment.ip,
+                'deviceId':data.environment.deviceId
+            },
             method:"post",
             data:data
         })
