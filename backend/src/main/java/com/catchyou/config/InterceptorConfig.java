@@ -9,10 +9,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class InterceptorConfig implements WebMvcConfigurer {
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    public InterceptorConfig(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        InterceptorRegistration registration = registry.addInterceptor(new RequestInterceptor());
+        InterceptorRegistration registration = registry.addInterceptor(new RequestInterceptor(redisTemplate));
         registration.addPathPatterns("/**"); //所有路径都被拦截
         registration.excludePathPatterns(    //添加不拦截路径
                 "/**/*.html",                //html静态资源
