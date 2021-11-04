@@ -7,7 +7,7 @@ export default new Router({
     routes: [
         {
             path: '/',
-            redirect: '/404'
+            redirect: '/log'
         },
         {
             path: '/',
@@ -18,6 +18,11 @@ export default new Router({
                     path: '/404',
                     component: () => import(/* webpackChunkName: "404" */ '../components/page/404.vue'),
                     meta: { title: '404' }
+                },
+                {
+                    path: '/log',
+                    component: () => import(/* webpackChunkName: "login" */ '../components/page/log.vue'),
+                    meta: { title: '登录信息' }
                 }
             ]
             },

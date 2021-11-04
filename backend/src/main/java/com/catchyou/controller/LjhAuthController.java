@@ -66,6 +66,7 @@ public class LjhAuthController {
 
         CommonResult<Map<String, Object>> responseBody = new CommonResult<>(code, message);
         Map<String, Object> data = new HashMap<>();
+        System.out.println("验证码为"+verifyCode);
         data.put("verifyCode", verifyCode);
         data.put("expireTime", 3 * 60);
         data.put("decisionType", decisionType);

@@ -59,11 +59,11 @@ export default {
                 {
                     icon: 'el-icon-lx-global',
                     index: '1',
-                    title: '待定',
+                    title: '用户信息',
                     subs: [
                         {
-                            index: 'guiTest',
-                            title: '待定'
+                            index: 'log',
+                            title: '登录记录'
                         }
                     ]
                 }
