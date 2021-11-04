@@ -90,10 +90,10 @@ public class CnServiceImpl implements CnService {
     @Override
     public Boolean logout(String uid) {
         User user = cnDao.getUserById(uid);
-        Integer res = cnDao.setActiveFalse(user);
-        if (res == 0) {
+        if (user == null) {
             return false;
         }
+        cnDao.setActiveFalse(user);
         return true;
     }
 
