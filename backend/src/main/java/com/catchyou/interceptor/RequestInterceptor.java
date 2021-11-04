@@ -1,6 +1,5 @@
 package com.catchyou.interceptor;
 
-
 import com.catchyou.pojo.CommonResult;
 import com.catchyou.util.MyUtil;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,12 +24,10 @@ public class RequestInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String ip = request.getHeader("ip");
-        System.out.println("ip=" + ip);
         String deviceId = request.getHeader("deviceId");
 
-        //频度检测，同一个ip在一个时间片（5s）内只允许请求最多10次
+        //频度检测，同一个ip在一个时间片（5s）内只允许请求最多10次，无论什么接口
         String ipKey = ipGenKey(ip);
-        redisTemplate.opsForValue().set("test", 1);
         if (!(redisTemplate.hasKey(ipKey))) {
             redisTemplate.opsForValue().set(ipKey, 1, 5, TimeUnit.SECONDS);
         } else {
