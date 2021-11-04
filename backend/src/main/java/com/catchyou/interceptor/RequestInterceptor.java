@@ -33,7 +33,7 @@ public class RequestInterceptor implements HandlerInterceptor {
 
         //频度检测，同一个ip在一个时间片（5s）内只允许请求最多10次
         String ipKey = ipGenKey(ip);
-        redisTemplate.opsForValue().set("test", 1);
+//        redisTemplate.opsForValue().set("test", 1);
 //        if (!(redisTemplate.hasKey(ipKey))) {
 //            opsForValue.set(ipKey, 1, 5, TimeUnit.SECONDS);
 //        } else {
