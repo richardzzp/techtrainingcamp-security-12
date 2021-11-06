@@ -1,6 +1,7 @@
 package com.catchyou.config;
 
 import com.catchyou.interceptor.RequestInterceptor;
+import com.catchyou.service.impl.CnServiceImpl;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
@@ -10,6 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class InterceptorConfig implements WebMvcConfigurer {
     private final RedisTemplate<String, Object> redisTemplate;
+
 
     public InterceptorConfig(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;

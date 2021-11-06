@@ -5,17 +5,22 @@ import com.catchyou.pojo.Log;
 import com.catchyou.pojo.User;
 import com.catchyou.service.CnService;
 import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class CnServiceImpl implements CnService {
 
     @Resource
     private CnDao cnDao;
+
+    @Resource
+    private RedisTemplate redisTemplate;
 
     @Override
     //判断用户名是否已经存在
@@ -58,15 +63,46 @@ public class CnServiceImpl implements CnService {
     }
 
     @Override
-    public Boolean checkUsernamePasswordMatch(String username, String password) {
+    //返回 0 表示匹配成功
+    //返回 1 表示用户名不存在，无惩罚机制
+    //返回 2 表示匹配失败，无惩罚机制
+    //返回 3 表示匹配失败，用户1分钟内无法再尝试（针对于某个ip地址）
+    //返回 4 表示匹配失败，用户5分钟内无法再尝试（针对于某个ip地址）
+    //返回 5 表示匹配失败，禁止用户登录（针对于某个ip地址）
+    public Integer checkUsernamePasswordMatch(String username, String password, String ip) {
         User user = cnDao.getUserByName(username);
         if (user == null) {
-            return false;
+            return 1;
         }
+        String key = null;
         if (!BCrypt.checkpw(password, user.getPassword())) {
-            return false;
+            key = new StringBuilder().append(username).append("_").append(ip)
+                    .append("_wrong_pwd_count").toString();
+            if (!redisTemplate.hasKey(key)) {
+                redisTemplate.opsForValue().set(key, 1);
+            } else {
+                redisTemplate.opsForValue().increment(key);
+            }
+            Integer count = (Integer) redisTemplate.opsForValue().get(key);
+            //如果错了5次，那么1分钟内不允许用户再尝试
+            if (count == 5) {
+                return 3;
+            }
+            //如果错了10次，那么5分钟内不允许用户再尝试
+            if (count == 10) {
+                return 4;
+            }
+            //如果错了15次，那么封号处理（针对这个ip的封号）
+            if (count == 15) {
+                return 5;
+            }
+            return 2;
         }
-        return true;
+        //一旦登录成功，那么需要把风控信息清除
+        if (key != null) {
+            redisTemplate.delete(key);
+        }
+        return 0;
     }
 
     @Override

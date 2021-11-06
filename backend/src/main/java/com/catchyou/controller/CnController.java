@@ -69,16 +69,39 @@ public class CnController {
     @PostMapping("/cn/loginWithUsername")
     public CommonResult loginWithUsername(@RequestBody HashMap<String, Object> map) {
         try {
-            //判断用户名是否已经存在，存在的话用户名和密码又是否匹配
-            String username = (String) map.get("username");
-            String password = (String) map.get("password");
-            if (!cnService.checkUsernamePasswordMatch(username, password)) {
-                return new CommonResult(1, "用户名或密码不正确，登录失败");
-            }
             //提取ip和deviceId
             HashMap<String, String> environment = (HashMap) map.get("environment");
             String ip = environment.get("ip");
             String deviceId = environment.get("deviceId");
+            //判断用户名是否已经存在，存在的话用户名和密码又是否匹配
+            String username = (String) map.get("username");
+            String password = (String) map.get("password");
+            Integer res = cnService.checkUsernamePasswordMatch(username, password, ip);
+            if (res == 1) {
+                return new CommonResult(1, "该用户名不存在");
+            }
+            if (res == 2) {
+                return new CommonResult(1, "密码错误");
+            }
+            if (res == 3) {
+                HashMap<String, Object> data = new HashMap<>();
+                data.put("banTime", 1);
+                data.put("decisionType", 2);
+                return new CommonResult(1, "已经5次密码错误，1分钟内禁止尝试");
+            }
+            if (res == 4) {
+                HashMap<String, Object> data = new HashMap<>();
+                data.put("banTime", 5);
+                data.put("decisionType", 2);
+                return new CommonResult(1, "已经10次密码错误，5分钟内禁止尝试");
+            }
+            if (res == 5) {
+                HashMap<String, Object> data = new HashMap<>();
+                data.put("banTime", 999);
+                data.put("decisionType", 2);
+                //此时还应短信通知用户账号存在风险
+                return new CommonResult(1, "已经15次密码错误，不再允许新的尝试");
+            }
             //尝试进行登录
             String uuid = cnService.loginWithUsernameAfterCheck(username, ip, deviceId);
             //需要返回的一些信息（目前不清楚具体用途，先在这里随便写着）

@@ -11,7 +11,7 @@ public interface CnService {
 
     String registerAfterCheck(User user);
 
-    Boolean checkUsernamePasswordMatch(String username, String password);
+    Integer checkUsernamePasswordMatch(String username, String password, String ip);
 
     String loginWithUsernameAfterCheck(String username, String ip, String deviceId);
 
