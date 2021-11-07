@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.catchyou.dao.CnDao">
+<mapper namespace="com.catchyou.dao.AuthDao">
 
     <insert id="insertUser" parameterType="User">
         insert into auth.user (id, username, phone_number, password, register_time, register_ip, register_device_id, is_active)

@@ -1,6 +1,6 @@
 package com.catchyou.service;
 
-public interface LjhVerifyCodeService {
+public interface VerifyCodeService {
     String generateVerifyCode(String phoneNumber);
 
     boolean checkVerifyCode(String phoneNumber, String code);

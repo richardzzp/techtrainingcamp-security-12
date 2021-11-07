@@ -1,7 +1,6 @@
 package com.catchyou.interceptor;
 
 import com.catchyou.pojo.CommonResult;
-import com.catchyou.service.impl.CnServiceImpl;
 import com.catchyou.util.MyUtil;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.servlet.HandlerInterceptor;

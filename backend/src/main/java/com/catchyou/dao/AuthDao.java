@@ -5,7 +5,7 @@ import com.catchyou.pojo.User;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface CnDao {
+public interface AuthDao {
 
     //注册成功时插入一条记录到表中
     Integer insertUser(User user);

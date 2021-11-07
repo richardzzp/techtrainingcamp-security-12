@@ -2,8 +2,8 @@ package com.catchyou.controller;
 
 import com.catchyou.pojo.CommonResult;
 import com.catchyou.pojo.User;
-import com.catchyou.service.impl.CnServiceImpl;
-import com.catchyou.service.impl.LjhVerifyCodeServiceImpl;
+import com.catchyou.service.AuthService;
+import com.catchyou.service.VerifyCodeService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,39 +12,61 @@ import java.util.Date;
 import java.util.HashMap;
 
 @RestController
-public class CnController {
+@RequestMapping("/auth")
+public class AuthController {
 
     @Resource
-    private CnServiceImpl cnService;
+    private AuthService authServiceImpl;
 
     @Resource
-    private LjhVerifyCodeServiceImpl ljhVerifyCodeService;
+    private VerifyCodeService verifyCodeServiceImpl;
 
     @Resource
     private RedisTemplate redisTemplate;
 
-    @PostMapping("/cn/register")
+    /**
+     * 注册
+     * @param map
+     * UserName     //用户名
+     * Password     //密码
+     * PhoneNumber
+     * VerifyCode
+     * Environment{
+     *     IP
+     *     DeviceID
+     * }
+     * @return
+     * Code      //0表示注册成功，1表示注册失败
+     * Message   //表示返回的说明，例如code=1时，message=“相同的用户名已经被注册过了，请更换用户名试试”
+     * SessionID //uuid
+     * Data{
+     *     SessionID    //随机的uuid
+     *     ExpireTime   //过期时间，例如有效期3小时，这个时间可以自行设定
+     *     DecisionType //0表示用户可以正常注册，1表示需要用户通过滑块验证，通过后才能注册，2表示需要用户过一段时间，才能重新注册，3表示这个用户不能注册
+     * }
+     */
+    @PostMapping("/register")
     public CommonResult register(@RequestBody HashMap<String, Object> map) {
         try {
             //判断手机号是否重复（发验证码的时候其实也做过了）
             String phoneNumber = (String) map.get("phoneNumber");
-            if (cnService.checkPhoneExist(phoneNumber)) {
+            if (authServiceImpl.checkPhoneExist(phoneNumber)) {
                 return new CommonResult(1, "手机号重复了，注册失败");
             }
             //判断手机验证码是否正确
             String verifyCode = (String) map.get("verifyCode");
-            if (!ljhVerifyCodeService.checkVerifyCode(phoneNumber, verifyCode)) {
+            if (!verifyCodeServiceImpl.checkVerifyCode(phoneNumber, verifyCode)) {
                 return new CommonResult(2, "验证码不正确，注册失败");
             }
             //判断用户名是否重复
             String username = (String) map.get("username");
-            if (cnService.checkUsernameExist(username)) {
+            if (authServiceImpl.checkUsernameExist(username)) {
                 return new CommonResult(3, "用户名重复了，注册失败");
             }
             //判断是否为垃圾注册
             HashMap<String, String> environment = (HashMap) map.get("environment");
             String deviceId = environment.get("deviceId");
-            if (cnService.checkRubbishRegister(deviceId)) {
+            if (authServiceImpl.checkRubbishRegister(deviceId)) {
                 return new CommonResult(4, "该设备已经注册过多账号，请注销部分非常用账号后再试");
             }
             //验证码、用户名都没问题，就可以注册了
@@ -57,7 +79,7 @@ public class CnController {
             user.setRegisterIp(environment.get("ip"));
             user.setRegisterDeviceId(environment.get("deviceId"));
             //进行注册
-            String uuid = cnService.registerAfterCheck(user);
+            String uuid = authServiceImpl.registerAfterCheck(user);
             if (uuid == null) {
                 return new CommonResult(5, "未知错误，注册失败");
             }
@@ -73,7 +95,33 @@ public class CnController {
         }
     }
 
-    @PostMapping("/cn/loginWithUsername")
+    /**
+     * 登录
+     * @param map
+     * - 根据用户名登录的请求参数：
+     * UserName
+     * Password
+     * Environment{
+     *     IP
+     *     DeviceID
+     * }
+     * - 根据手机号登录的请求参数：
+     * PhoneNumber
+     * VerifyCode
+     * Environment{
+     *     IP
+     *     DeviceID
+     * }
+     * @return
+     * Code      //0表示登录成功，1表示登录失败
+     * Message   //表示返回的说明，例如code=1时，message=“用户名或者密码不对”
+     * Data{
+     *     SessionID
+     *     ExpireTime
+     *     DecisionType //0表示用户可以正常登录，1表示需要用户通过滑块验证，通过后才能登录，2表示需要用户过一段时间，才能重新登录，3表示这个用户不能登录
+     * }
+     */
+    @PostMapping("/loginWithUsername")
     public CommonResult loginWithUsername(@RequestBody HashMap<String, Object> map) {
         try {
             //提取ip和deviceId
@@ -83,7 +131,7 @@ public class CnController {
             //判断用户名是否已经存在，存在的话用户名和密码又是否匹配
             String username = (String) map.get("username");
             String password = (String) map.get("password");
-            Integer res = cnService.checkUsernamePasswordMatch(username, password, ip);
+            Integer res = authServiceImpl.checkUsernamePasswordMatch(username, password, ip);
             if (res == 1) {
                 return new CommonResult(1, "该用户名不存在");
             }
@@ -111,14 +159,14 @@ public class CnController {
             }
 
             //判断是不是异地登录
-            if (cnService.checkRemoteLogin(username, ip, deviceId)) {
+            if (authServiceImpl.checkRemoteLogin(username, ip, deviceId)) {
                 HashMap<String, Object> data = new HashMap<>();
                 data.put("decisionType", 0);
                 return new CommonResult(6, "异地登录，请使用手机号登录", data);
             }
 
             //尝试进行登录
-            String uuid = cnService.loginWithUsernameAfterCheck(username, ip, deviceId);
+            String uuid = authServiceImpl.loginWithUsernameAfterCheck(username, ip, deviceId);
             //需要返回的一些信息（目前不清楚具体用途，先在这里随便写着）
             HashMap<String, Object> data = new HashMap<>();
             data.put("sessionId", uuid); //先拿uuid混一下
@@ -131,17 +179,17 @@ public class CnController {
         }
     }
 
-    @PostMapping("/cn/loginWithPhone")
+    @PostMapping("/loginWithPhone")
     public CommonResult loginWithPhone(@RequestBody HashMap<String, Object> map) {
         try {
             //判断手机号是否存在（发验证码的时候其实也做过了）
             String phoneNumber = (String) map.get("phoneNumber");
-            if (!cnService.checkPhoneExist(phoneNumber)) {
+            if (!authServiceImpl.checkPhoneExist(phoneNumber)) {
                 return new CommonResult(1, "手机号不存在");
             }
             //判断手机验证码是否正确
             String verifyCode = (String) map.get("verifyCode");
-            if (!ljhVerifyCodeService.checkVerifyCode(phoneNumber, verifyCode)) {
+            if (!verifyCodeServiceImpl.checkVerifyCode(phoneNumber, verifyCode)) {
                 return new CommonResult(2, "验证码不正确");
             }
             //提取ip和deviceId
@@ -149,7 +197,7 @@ public class CnController {
             String ip = environment.get("ip");
             String deviceId = environment.get("deviceId");
             //尝试进行登录
-            String uuid = cnService.loginWithPhoneAfterCheck(phoneNumber, ip, deviceId);
+            String uuid = authServiceImpl.loginWithPhoneAfterCheck(phoneNumber, ip, deviceId);
             //需要返回的一些信息（目前不清楚具体用途，先在这里随便写着）
             HashMap<String, Object> data = new HashMap<>();
             data.put("sessionId", uuid); //先拿uuid混一下
@@ -162,7 +210,20 @@ public class CnController {
         }
     }
 
-    @PostMapping("/cn/logout")
+    /**
+     * 登出或注销
+     * @param map
+     * SessionID
+     * ActionType  //1代表登出，2代表注销
+     * Environment{
+     *     IP
+     *     DeviceID
+     * }
+     * @return
+     * Code      //0表示登出或注销成功，1表示登出或注销失败
+     * Message   //表示返回的说明，例如退出时，code=0，message=“退出成功”
+     */
+    @PostMapping("/logout")
     public CommonResult logout(@RequestBody HashMap<String, Object> map) {
         try {
             //提取信息
@@ -176,7 +237,7 @@ public class CnController {
 
             //注销
             if (actionType.equals("2")) {
-                Boolean res = cnService.logout(sessionId);
+                Boolean res = authServiceImpl.logout(sessionId);
                 if (!res) {
                     return new CommonResult(1, "注销失败");
                 }
@@ -190,31 +251,31 @@ public class CnController {
         }
     }
 
-    @PostMapping("/cn/getLoginRecord")
+    @PostMapping("/getLoginRecord")
     public CommonResult getLoginRecord(@RequestBody HashMap<String, Object> map) {
         try {
             //提取信息
             String sessionId = (String) map.get("sessionId"); //目前当作uid处理
-            return new CommonResult(0, "请求成功", cnService.getLoginRecordById(sessionId));
+            return new CommonResult(0, "请求成功", authServiceImpl.getLoginRecordById(sessionId));
         } catch (Exception e) {
             e.printStackTrace();
             return new CommonResult(1, "未知错误");
         }
     }
 
-    @PostMapping("/cn/getUser")
+    @PostMapping("/getUser")
     public CommonResult getUser(@RequestBody HashMap<String, Object> map) {
         try {
             //提取信息
             String sessionId = (String) map.get("sessionId"); //目前当作uid处理
-            return new CommonResult(0, "请求成功", cnService.getUserById(sessionId));
+            return new CommonResult(0, "请求成功", authServiceImpl.getUserById(sessionId));
         } catch (Exception e) {
             e.printStackTrace();
             return new CommonResult(1, "未知错误");
         }
     }
 
-    @GetMapping("/cn/delete/{username}/{ip}")
+    @GetMapping("/delete/{username}/{ip}")
     public Integer delete(@PathVariable String username,
                           @PathVariable String ip) {
         try {

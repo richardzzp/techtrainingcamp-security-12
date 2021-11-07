@@ -1,25 +1,23 @@
 package com.catchyou.service.impl;
 
-import com.catchyou.dao.CnDao;
+import com.catchyou.dao.AuthDao;
 import com.catchyou.pojo.Log;
 import com.catchyou.pojo.User;
-import com.catchyou.service.CnService;
+import com.catchyou.service.AuthService;
 import com.catchyou.util.MyUtil;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.UUID;
 
 @Service
-public class CnServiceImpl implements CnService {
+public class AuthServiceImpl implements AuthService {
 
     @Resource
-    private CnDao cnDao;
+    private AuthDao authDao;
 
     @Resource
     private RedisTemplate redisTemplate;
@@ -27,7 +25,7 @@ public class CnServiceImpl implements CnService {
     @Override
     //判断用户名是否已经存在
     public Boolean checkUsernameExist(String username) {
-        User user = cnDao.getUserByName(username);
+        User user = authDao.getUserByName(username);
         if (user != null) {
             return true;
         }
@@ -36,7 +34,7 @@ public class CnServiceImpl implements CnService {
 
     @Override
     public Boolean checkPhoneExist(String phone) {
-        User user = cnDao.getUserByPhone(phone);
+        User user = authDao.getUserByPhone(phone);
         if (user != null) {
             return true;
         }
@@ -52,14 +50,14 @@ public class CnServiceImpl implements CnService {
         user.setId(uuid);
         //插入到数据库中
         System.out.println(user);
-        Integer res = cnDao.insertUser(user);
+        Integer res = authDao.insertUser(user);
         if (res == 0) {
             //插入失败返回null
             return null;
         }
         //登录记录
         Log log = new Log(null, user.getId(), new Date(), user.getRegisterIp(), user.getRegisterDeviceId());
-        cnDao.insertLog(log);
+        authDao.insertLog(log);
         //风控信息
         String key = new StringBuilder().append(user.getUsername()).append("_login_cities").toString();
         redisTemplate.opsForSet().add(key, MyUtil.getCityFromIp(user.getRegisterIp()));
@@ -77,7 +75,7 @@ public class CnServiceImpl implements CnService {
     //返回 4 表示匹配失败，用户5分钟内无法再尝试（针对于某个ip地址）
     //返回 5 表示匹配失败，禁止用户登录（针对于某个ip地址）
     public Integer checkUsernamePasswordMatch(String username, String password, String ip) {
-        User user = cnDao.getUserByName(username);
+        User user = authDao.getUserByName(username);
         if (user == null) {
             return 1;
         }
@@ -114,10 +112,10 @@ public class CnServiceImpl implements CnService {
 
     @Override
     public String loginWithUsernameAfterCheck(String username, String ip, String deviceId) {
-        User user = cnDao.getUserByName(username);
+        User user = authDao.getUserByName(username);
         //登录记录
         Log log = new Log(null, user.getId(), new Date(), ip, deviceId);
-        cnDao.insertLog(log);
+        authDao.insertLog(log);
         //风控信息
         String key = new StringBuilder().append(username).append("_login_cities").toString();
         redisTemplate.opsForSet().add(key, MyUtil.getCityFromIp(ip));
@@ -128,10 +126,10 @@ public class CnServiceImpl implements CnService {
 
     @Override
     public String loginWithPhoneAfterCheck(String phone, String ip, String deviceId) {
-        User user = cnDao.getUserByPhone(phone);
+        User user = authDao.getUserByPhone(phone);
         //登录记录
         Log log = new Log(null, user.getId(), new Date(), ip, deviceId);
-        cnDao.insertLog(log);
+        authDao.insertLog(log);
         //风控信息
         String key = new StringBuilder().append(user.getUsername()).append("_login_cities").toString();
         redisTemplate.opsForSet().add(key, MyUtil.getCityFromIp(ip));
@@ -142,11 +140,11 @@ public class CnServiceImpl implements CnService {
 
     @Override
     public Boolean logout(String uid) {
-        User user = cnDao.getUserById(uid);
+        User user = authDao.getUserById(uid);
         if (user == null) {
             return false;
         }
-        cnDao.setActiveFalse(user);
+        authDao.setActiveFalse(user);
         //一些风控信息的清除
         String key = new StringBuilder().append(user.getUsername()).append("_login_cities").toString();
         redisTemplate.delete(key);
@@ -157,18 +155,18 @@ public class CnServiceImpl implements CnService {
 
     @Override
     public Log[] getLoginRecordById(String uid) {
-        return cnDao.getLoginRecordById(uid);
+        return authDao.getLoginRecordById(uid);
     }
 
     @Override
     public User getUserById(String uid) {
-        return cnDao.getUserById(uid);
+        return authDao.getUserById(uid);
     }
 
     @Override
     //规定，一个设备最多只能注册五个账号
     public Boolean checkRubbishRegister(String deviceId) {
-        Integer count = cnDao.getMacRegisterCount(deviceId);
+        Integer count = authDao.getMacRegisterCount(deviceId);
         if (count >= 5) {
             return true;
         }

@@ -3,7 +3,7 @@ package com.catchyou.service;
 import com.catchyou.pojo.Log;
 import com.catchyou.pojo.User;
 
-public interface CnService {
+public interface AuthService {
 
     Boolean checkUsernameExist(String username);
 
