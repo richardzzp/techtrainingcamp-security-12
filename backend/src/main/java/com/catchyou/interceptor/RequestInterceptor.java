@@ -32,8 +32,8 @@ public class RequestInterceptor implements HandlerInterceptor {
         //先看黑名单里有没有这个ip，有的话就直接打回去
         if (redisTemplate.opsForSet().isMember("ip_black_list", ip)) {
             HashMap<String, Object> map = new HashMap<>();
-            map.put("decisionType", 0);
-            MyUtil.setResponse(response, new CommonResult<>(1, "由于多次的高频访问，您的ip已被锁定", map));
+            map.put("decisionType", 4);
+            MyUtil.setResponse(response, new CommonResult<>(-1, "由于多次的高频访问，您的ip已被锁定", map));
             return false;
         }
         //频度检测，同一个ip在一个时间片（5s）内只允许请求最多10次，无论什么接口
@@ -57,14 +57,14 @@ public class RequestInterceptor implements HandlerInterceptor {
             if ((Integer) redisTemplate.opsForValue().get(blockCountKey) >= 5) {
                 redisTemplate.opsForSet().add("ip_black_list", ip);
                 HashMap<String, Object> map = new HashMap<>();
-                map.put("decisionType", 0);
-                MyUtil.setResponse(response, new CommonResult<>(1, "由于多次的高频访问，您的ip已被锁定", map));
+                map.put("decisionType", 4);
+                MyUtil.setResponse(response, new CommonResult<>(-1, "由于多次的高频访问，您的ip已被锁定", map));
                 redisTemplate.delete(blockCountKey);
                 return false;
             }
             HashMap<String, Object> map = new HashMap<>();
             map.put("decisionType", 1);
-            MyUtil.setResponse(response, new CommonResult<>(1, "ip访问过于频繁，需要进行滑块验证", map));
+            MyUtil.setResponse(response, new CommonResult<>(-1, "ip访问过于频繁，需要进行滑块验证", map));
             redisTemplate.delete(requestCountKey);
             return false;
         }
