@@ -56,18 +56,18 @@ public class AuthController {
             //判断手机验证码是否正确
             String verifyCode = (String) map.get("verifyCode");
             if (!verifyCodeServiceImpl.checkVerifyCode(phoneNumber, verifyCode)) {
-                return new CommonResult(2, "验证码不正确，注册失败");
+                return new CommonResult(1, "验证码不正确，注册失败");
             }
             //判断用户名是否重复
             String username = (String) map.get("username");
             if (authServiceImpl.checkUsernameExist(username)) {
-                return new CommonResult(3, "用户名重复了，注册失败");
+                return new CommonResult(1, "用户名重复了，注册失败");
             }
             //判断是否为垃圾注册
             HashMap<String, String> environment = (HashMap) map.get("environment");
             String deviceId = environment.get("deviceId");
             if (authServiceImpl.checkRubbishRegister(deviceId)) {
-                return new CommonResult(4, "该设备已经注册过多账号，请注销部分非常用账号后再试");
+                return new CommonResult(1, "该设备已经注册过多账号，请注销部分非常用账号后再试");
             }
             //验证码、用户名都没问题，就可以注册了
             //准备一个user进行注册
@@ -81,7 +81,7 @@ public class AuthController {
             //进行注册
             String uuid = authServiceImpl.registerAfterCheck(user);
             if (uuid == null) {
-                return new CommonResult(5, "未知错误，注册失败");
+                return new CommonResult(1, "未知错误，注册失败");
             }
             //需要返回的一些信息（目前不清楚具体用途，先在这里随便写着）
             HashMap<String, Object> data = new HashMap<>();
@@ -91,7 +91,7 @@ public class AuthController {
             return new CommonResult(0, "注册成功", data);
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResult(5, "未知错误，注册失败");
+            return new CommonResult(1, "未知错误，注册失败");
         }
     }
 
@@ -136,33 +136,31 @@ public class AuthController {
                 return new CommonResult(1, "该用户名不存在");
             }
             if (res == 2) {
-                return new CommonResult(2, "密码错误");
+                return new CommonResult(1, "密码错误");
             }
             if (res == 3) {
                 HashMap<String, Object> data = new HashMap<>();
                 data.put("banTime", 1 * 60 * 1000);
                 data.put("decisionType", 2);
-                return new CommonResult(3, "已经5次密码错误，1分钟内禁止尝试", data);
+                return new CommonResult(1, "已经5次密码错误，1分钟内禁止尝试", data);
             }
             if (res == 4) {
                 HashMap<String, Object> data = new HashMap<>();
                 data.put("banTime", 5 * 60 * 1000);
                 data.put("decisionType", 2);
-                return new CommonResult(4, "已经10次密码错误，5分钟内禁止尝试", data);
+                return new CommonResult(1, "已经10次密码错误，5分钟内禁止尝试", data);
             }
             if (res == 5) {
                 HashMap<String, Object> data = new HashMap<>();
                 data.put("banTime", -1);
-                data.put("decisionType", 2);
+                data.put("decisionType", 3);
                 //此时还应短信通知用户账号存在风险
-                return new CommonResult(5, "已经15次密码错误，不再允许新的尝试", data);
+                return new CommonResult(1, "已经15次密码错误，不再允许新的尝试", data);
             }
 
             //判断是不是异地登录
             if (authServiceImpl.checkRemoteLogin(username, ip, deviceId)) {
-                HashMap<String, Object> data = new HashMap<>();
-                data.put("decisionType", 0);
-                return new CommonResult(6, "异地登录，请使用手机号登录", data);
+                return new CommonResult(1, "异地登录，请使用手机号登录");
             }
 
             //尝试进行登录
@@ -175,7 +173,7 @@ public class AuthController {
             return new CommonResult(0, "登录成功", data);
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResult(7, "未知错误，登录失败");
+            return new CommonResult(1, "未知错误，登录失败");
         }
     }
 
@@ -190,7 +188,7 @@ public class AuthController {
             //判断手机验证码是否正确
             String verifyCode = (String) map.get("verifyCode");
             if (!verifyCodeServiceImpl.checkVerifyCode(phoneNumber, verifyCode)) {
-                return new CommonResult(2, "验证码不正确");
+                return new CommonResult(1, "验证码不正确");
             }
             //提取ip和deviceId
             HashMap<String, String> environment = (HashMap) map.get("environment");
@@ -206,7 +204,7 @@ public class AuthController {
             return new CommonResult(0, "登录成功", data);
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResult(3, "未知错误，登录失败");
+            return new CommonResult(1, "未知错误，登录失败");
         }
     }
 
@@ -244,10 +242,10 @@ public class AuthController {
                 return new CommonResult(0, "注销成功");
             }
 
-            return new CommonResult(2, "不正确的actionType");
+            return new CommonResult(1, "不正确的actionType");
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResult(3, "未知错误");
+            return new CommonResult(1, "未知错误");
         }
     }
 
@@ -279,9 +277,10 @@ public class AuthController {
     public Integer delete(@PathVariable String username,
                           @PathVariable String ip) {
         try {
+            System.out.println("解封："+username+ip);
             String key = new StringBuilder().append(ip).append("_request_count").toString();
             redisTemplate.delete(key);
-            key = new StringBuilder().append(username).append("_block_count").toString();
+            key = new StringBuilder().append(ip).append("_block_count").toString();
             redisTemplate.delete(key);
             redisTemplate.opsForSet().remove("ip_black_list", ip);
             key = new StringBuilder().append(username).append("_").append(ip)

@@ -28,10 +28,12 @@ public class RequestInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String ip = request.getHeader("ip");
+        System.out.println("拦截判断:"+ip);
         //先看黑名单里有没有这个ip，有的话就直接打回去
         if (redisTemplate.opsForSet().isMember("ip_black_list", ip)) {
+            System.out.println("请求被拦截");
             HashMap<String, Object> map = new HashMap<>();
-            map.put("decisionType", 4);
+            map.put("decisionType", 3);
             MyUtil.setResponse(response, new CommonResult<>(-1, "由于多次的高频访问，您的ip已被锁定", map));
             return false;
         }
@@ -56,7 +58,7 @@ public class RequestInterceptor implements HandlerInterceptor {
             if ((Integer) redisTemplate.opsForValue().get(blockCountKey) >= 5) {
                 redisTemplate.opsForSet().add("ip_black_list", ip);
                 HashMap<String, Object> map = new HashMap<>();
-                map.put("decisionType", 4);
+                map.put("decisionType", 3);
                 MyUtil.setResponse(response, new CommonResult<>(-1, "由于多次的高频访问，您的ip已被锁定", map));
                 redisTemplate.delete(blockCountKey);
                 return false;

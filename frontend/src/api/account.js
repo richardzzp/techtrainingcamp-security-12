@@ -2,16 +2,9 @@ import request from '../utils/request';
 
 var url="http://127.0.0.1:9100"
 export default{
-    // getData: query =>{
-    //     return request({
-    //         url:"./EngineeringCalculationModuleTest.json",
-    //         method: 'get',
-    //         params: query
-    //     });
-    // }
     register: data=>{
         return request({
-            url: url+'/cn/register',
+            url: url+'/auth/register',
             headers:{
                 'ip':data.environment.ip,
                 'deviceId':data.environment.deviceId
@@ -23,7 +16,7 @@ export default{
     },
     loginWithAccount: data=>{
         return request({
-            url: url+'/cn/loginWithUsername',
+            url: url+'/auth/loginWithUsername',
             headers:{
                 'ip':data.environment.ip,
                 'deviceId':data.environment.deviceId
@@ -34,7 +27,7 @@ export default{
     },
     loginWithPhone: data=>{
         return request({
-            url: url+'/cn/loginWithPhone',
+            url: url+'/auth/loginWithPhone',
             headers:{
                 'ip':data.environment.ip,
                 'deviceId':data.environment.deviceId
@@ -45,7 +38,7 @@ export default{
     },
     applyCode: data=>{
         return request({
-            url: url+'/api/ljh/apply-code',
+            url: url+'/verifyCode/applyCode',
             headers:{
                 'ip':data.environment.ip,
                 'deviceId':data.environment.deviceId
@@ -56,7 +49,7 @@ export default{
     },
     getUser: data=>{
         return request({
-            url: url+'/cn/getUser',
+            url: url+'/auth/getUser',
             headers:{
                 'ip':data.environment.ip,
                 'deviceId':data.environment.deviceId
@@ -67,7 +60,7 @@ export default{
     },
     getLoginRecord: data=>{
         return request({
-            url: url+'/cn/getLoginRecord',
+            url: url+'/auth/getLoginRecord',
             headers:{
                 'ip':data.environment.ip,
                 'deviceId':data.environment.deviceId
@@ -78,7 +71,7 @@ export default{
     },
     logout: data=>{
         return request({
-            url: url+'/cn/logout',
+            url: url+'/auth/logout',
             headers:{
                 'ip':data.environment.ip,
                 'deviceId':data.environment.deviceId

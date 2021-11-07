@@ -48,13 +48,12 @@ public class VerifyCodeController {
         String verifyCode = null;
         int expireTime = 180;
         int decisionType = 0;
-
         if (type == 1 && !authServiceImpl.checkPhoneExist(phoneNumber)) {
             message = "手机号不存在";
-            decisionType = 3;
+            return new CommonResult<>(code, message);
         } else if (type == 2 && authServiceImpl.checkPhoneExist(phoneNumber)) {
             message = "手机号已被注册";
-            decisionType = 3;
+            return new CommonResult<>(code, message);
         } else if (verifyCodeServiceImpl.withinOneMinute(phoneNumber)) {
             message = "验证码请求过于频繁";
             decisionType = 2;
