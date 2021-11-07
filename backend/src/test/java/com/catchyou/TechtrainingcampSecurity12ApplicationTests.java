@@ -2,9 +2,11 @@ package com.catchyou;
 
 import com.catchyou.controller.AuthController;
 import com.catchyou.controller.VerifyCodeController;
+import com.catchyou.dao.AuthDao;
 import com.catchyou.pojo.CommonResult;
 import com.catchyou.service.AuthService;
 import com.catchyou.service.VerifyCodeService;
+import org.junit.Before;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,56 +18,69 @@ import java.util.Map;
 @SpringBootTest
 class TechtrainingcampSecurity12ApplicationTests {
 	@Autowired
-	private VerifyCodeController verifyCodeController;
-	@Autowired
 	private AuthController authController;
 	@Autowired
-	VerifyCodeService verifyCodeService;
+	private VerifyCodeController verifyCodeController;
 	@Autowired
-	AuthService authService;
+	private VerifyCodeService verifyCodeService;
+	@Autowired
+	private AuthService authService;
+	@Autowired
+	private AuthDao authdao;
+
 
 	private static HashMap<String, Object> requestBody = new HashMap<>();
 	private static HashMap<String, Object> environment = new HashMap<>();
+
 	private static CommonResult<Map<String, Object>> responseBody;
-	private static final String PHONE_NUMBER_EXIST = "13391086386";// 存在的手机号
-	private static final String PHONE_NUMBER_NOT_EXIST = "15380436808";// 不存在的手机号
-	private static final String IP = "127.0.0.1";
-	private static final String DEVICE_ID = "123456789";
-	private static final String UID_EXIST = "d7bedf61-5646-4aad-b59e-4aa94bdb93c7";
-	private static final String UID_NOT_EXIST = "m7bedf61-5615-4hdd-wcfe-4aa94bdb93c7";
-	private static final String USERNAME_EXIST = "zanding";
-	private static final String USERNAME_NOT_EXIST = "18546516574";
-	private static final String PASSWORD_CORRECT = "zanding";
-	private static final String PASSWORD_INCORRECT = "18546516574";
-	private static final String VERIFY_CODE_INCORRECT = "123456";
+	private static final String phoneNumberExist_1 = "13391086386";// 存在的手机号
+	private static final String phoneNumberExist_2 = "13650068812";// 存在的手机号
+	private static final String phoneNumberExist_3 = "13650068813";// 存在的手机号
+	private static final String phoneNumberNotExist = "15380436809";// 不存在的手机号
+	private static String ip;
+	private static String deviceId;
+	private static final String uidExist = "d7bedf61-5646-4aad-b59e-4aa94bdb93c7";
+	private static final String uidNotExist = "m7bedf61-5615-4hdd-wcfe-4aa94bdb93c7";
+	private static final String usernameExist = "chennuo";
+	private static final String usernameNotExist = "chenysh";
+	private static final String passwordCorrect = "123qweasd";
+	private static final String passwordIncorrect = "18546516574";
+	private static final String verifyCodeIncorrect = "123456";
 
-
-//存在的手机13391086386
-//不存在的手机15380436808
 	/**
 	 * 登陆时, 手机号存在与不存在两种情况下,申请验证码的功能能否正常实现
 	 */
+	void init() {
+		ip = String.valueOf((int)(Math.random() * 128)) + "."
+				+ String.valueOf((int)(Math.random() * 128)) + "."
+				+ String.valueOf((int)(Math.random() * 128)) + "."
+				+ String.valueOf((int)(Math.random() * 128));
+		deviceId = String.valueOf((int)(Math.random() * 100000000));
+		environment.put("ip", ip);
+		environment.put("deviceId", deviceId);
+		requestBody.put("environment", environment);
+	}
 	@Test
 	void testApplyCode_1() {
+		init();
 		//设置请求体参数
 		int type = 1;
 
 		//创建手机号存在时的请求体
-		requestBody.put("phoneNumber", PHONE_NUMBER_EXIST);
+		requestBody.put("phoneNumber", phoneNumberExist_3);
 		requestBody.put("type", type);
-		environment.put("ip", IP);
-		environment.put("deviceId", DEVICE_ID);
-		requestBody.put("environment", environment);
 		//调用接口
 		responseBody = verifyCodeController.applyCode(requestBody);// 手机号存在时的响应体
 		//测试接口返回值，若响应体中的code等于0则测试通过
+		System.out.println(responseBody.getMessage());
 		Assertions.assertEquals(0, responseBody.getCode());
 
 		//创建手机号不存在时请求体
-		requestBody.put("phoneNumber", PHONE_NUMBER_NOT_EXIST);
+		requestBody.put("phoneNumber", String.valueOf((int)(Math.random() * 20000000000L) + 1));
 		//调用接口
 		responseBody = verifyCodeController.applyCode(requestBody);// 手机号不存在时的响应体
 		//测试接口返回值，若响应体中的code等于1则测试通过
+		System.out.println(responseBody.getMessage());
 		Assertions.assertEquals(1, responseBody.getCode());
 	}
 
@@ -74,36 +89,34 @@ class TechtrainingcampSecurity12ApplicationTests {
 	 */
 	@Test
 	void testApplyCode_2() {
+		init();
 		//设置请求体参数
 		int type = 2;
 
-		//创建手机号不存在时请求体
-		requestBody.put("phoneNumber", PHONE_NUMBER_EXIST);
+		//创建手机号存在时请求体
+		requestBody.put("phoneNumber", phoneNumberExist_2);
 		requestBody.put("type", type);
-		environment.put("ip", IP);
-		environment.put("deviceId", DEVICE_ID);
-		requestBody.put("environment", environment);
 		//调用接口
 		responseBody = verifyCodeController.applyCode(requestBody);// 手机号存在时的响应体
 		//测试接口返回值，若响应体中的code等于1则测试通过
+		System.out.println(responseBody.getMessage());
 		Assertions.assertEquals(1, responseBody.getCode());
 
 		//创建手机号不存在时请求体
-		requestBody.put("phoneNumber", PHONE_NUMBER_NOT_EXIST);
+		requestBody.put("phoneNumber", String.valueOf((int)(Math.random() * 20000000000L)));
 		//调用接口
 		responseBody = verifyCodeController.applyCode(requestBody);// 手机号不存在时的响应体
 		//测试接口返回值，若响应体中的code等于0则测试通过
+		System.out.println(responseBody.getMessage());
 		Assertions.assertEquals(0, responseBody.getCode());
 	}
 
 
 	@Test
 	void testGetLoginRecord() {
+		init();
 		//创建请求体
 		requestBody.put("sessionId", "132384854");
-		environment.put("ip", IP);
-		environment.put("deviceId", DEVICE_ID);
-		requestBody.put("environment", environment);
 		//调用接口
 		responseBody = authController.getLoginRecord(requestBody);
 
@@ -113,15 +126,14 @@ class TechtrainingcampSecurity12ApplicationTests {
 
 	@Test
 	void testGetUser() {
+		init();
 		//创建请求体
 		requestBody.put("sessionId", "132384854");
-		environment.put("ip", IP);
-		environment.put("deviceId", DEVICE_ID);
-		requestBody.put("environment", environment);
 		//调用接口
 		responseBody = authController.getUser(requestBody);
 
 		//测试接口返回值，若响应体中的code等于0则测试通过
+		System.out.println(responseBody.getMessage());
 		Assertions.assertEquals(0, responseBody.getCode());
 	}
 
@@ -130,19 +142,17 @@ class TechtrainingcampSecurity12ApplicationTests {
 	 */
 	@Test
 	void testLoginWithPhone() {
+		init();
 		//设置请求体参数
-		String verifyCodeCorrect = verifyCodeService.generateVerifyCode(PHONE_NUMBER_EXIST);
-		String verifyCodeIncorrect = "123456";
+		String verifyCodeCorrect = verifyCodeService.generateVerifyCode(phoneNumberExist_1);
 
 		//创建验证码正确时的请求体
-		requestBody.put("phoneNumber", PHONE_NUMBER_EXIST);
+		requestBody.put("phoneNumber", phoneNumberExist_1);
 		requestBody.put("verifyCode", verifyCodeCorrect);
-		environment.put("ip", IP);
-		environment.put("deviceId", DEVICE_ID);
-		requestBody.put("environment", environment);
 		//调用接口
 		responseBody = authController.loginWithPhone(requestBody);
 		//测试接口返回值，若响应体中的code等于0则测试通过
+		System.out.println(responseBody.getMessage());
 		Assertions.assertEquals(0, responseBody.getCode());
 
 		//创建验证码错误时的请求体
@@ -150,139 +160,158 @@ class TechtrainingcampSecurity12ApplicationTests {
 		//调用接口
 		responseBody = authController.loginWithPhone(requestBody);
 		//测试接口返回值，若响应体中的code等于0则测试通过
-		Assertions.assertEquals(1, responseBody.getCode());
-
-
-	}
-	@Test
-	void demo(){
-		System.out.println(authService.getUserById(UID_EXIST));
+		System.out.println(responseBody.getMessage());
+		Assertions.assertEquals(2, responseBody.getCode());
 	}
 	/**
 	 * sessionId存在和不存在时, 登出能否正确使用
 	 */
 	@Test
 	void testLogout_1() {
+		init();
 		//设置请求体参数
 		String actionType= "1";
 
 
 		//创建sessionId存在时登出的请求体
-		requestBody.put("sessionId", UID_EXIST);
+		requestBody.put("sessionId", uidExist);
 		requestBody.put("actionType", actionType);
-		environment.put("ip", IP);
-		environment.put("deviceId", DEVICE_ID);
-		requestBody.put("environment", environment);
 		//调用接口
 		responseBody = authController.logout(requestBody);
 		//测试接口返回值，若响应体中的code等于0则测试通过
+		System.out.println(responseBody.getMessage());
 		Assertions.assertEquals(0, responseBody.getCode());
 
 
 		//创建sessionId不存在时登出的请求体
-		requestBody.put("sessionId", UID_NOT_EXIST);
+		requestBody.put("sessionId", uidNotExist);
 		requestBody.put("actionType", actionType);
 		//调用接口
 		responseBody = authController.logout(requestBody);
 		//测试接口返回值，若响应体中的code等于0则测试通过
+		System.out.println(responseBody.getMessage());
 		Assertions.assertEquals(0, responseBody.getCode());
 
 	}
 	/**
 	 * sessionId存在和不存在时, 注销能否正确使用
+	 * 联合测试register方法
 	 */
 	@Test
 	void testLogout_2() {
+		init();
 		//设置请求体参数
 		String actionType= "2";
-
+		//注册账号获得sessionId
+		requestBody.put("phoneNumber", phoneNumberNotExist);
+		requestBody.put("verifyCode", verifyCodeService.generateVerifyCode(phoneNumberNotExist));
+		requestBody.put("username", usernameNotExist);
+		requestBody.put("password", passwordCorrect);
+		responseBody = authController.register(requestBody);
+		//测试接口返回值，若响应体中的code等于0则测试通过
+		Assertions.assertEquals(0, responseBody.getCode());
+		String sessionId = authdao.getUserByName(usernameNotExist).getId();
 		//创建sessionId存在时注销的请求体
-		requestBody.put("sessionId", UID_EXIST);
+		requestBody.put("sessionId", sessionId);
 		requestBody.put("actionType", actionType);
-		environment.put("ip", IP);
-		environment.put("deviceId", DEVICE_ID);
-		requestBody.put("environment", environment);
 		//调用接口
 		responseBody = authController.logout(requestBody);
 		//测试接口返回值，若响应体中的code等于0则测试通过
+		System.out.println(responseBody.getMessage());
 		Assertions.assertEquals(0, responseBody.getCode());
 
 
 		//创建sessionId不存在时注销的请求体
-		requestBody.put("sessionId", UID_NOT_EXIST);
+		requestBody.put("sessionId", uidNotExist);
 		//调用接口
 		responseBody = authController.logout(requestBody);
 		//测试接口返回值，若响应体中的code等于1则测试通过
+		System.out.println(responseBody.getMessage());
 		Assertions.assertEquals(1, responseBody.getCode());
 	}
 
 	@Test
 	void testLoginWithUsername() {
+		init();
 		//创建用户名不存在请求体
-		requestBody.put("username", USERNAME_NOT_EXIST);
-		requestBody.put("password", PASSWORD_INCORRECT);
-		environment.put("ip", IP);
-		environment.put("deviceId", DEVICE_ID);
+		requestBody.put("username", usernameNotExist);
+		requestBody.put("password", passwordIncorrect);
 		//调用接口
 		responseBody = authController.loginWithUsername(requestBody);
 		//测试接口返回值，若响应体中的code等于1则测试通过
 		Assertions.assertEquals(1, responseBody.getCode());
 
 		//创建用户名存在但密码不正确的请求体
-		requestBody.put("username", USERNAME_EXIST);
-		requestBody.put("password", PASSWORD_INCORRECT);
+		requestBody.put("username", usernameExist);
+		requestBody.put("password", passwordIncorrect);
 		//调用接口
 		responseBody = authController.loginWithUsername(requestBody);
 		//测试接口返回值，若响应体中的code等于1则测试通过
-		Assertions.assertEquals(1, responseBody.getCode());
+		System.out.println(responseBody.getMessage());
+		Assertions.assertEquals(2, responseBody.getCode());
 
 
 		//创建用户名存在且密码正确时的请求体
-		requestBody.put("username", USERNAME_EXIST);
-		requestBody.put("password", PASSWORD_CORRECT);
+		requestBody.put("username", usernameExist);
+		requestBody.put("password", passwordCorrect);
 		//调用接口
 		responseBody = authController.loginWithUsername(requestBody);
 		//测试接口返回值，若响应体中的code等于0则测试通过
+		System.out.println(responseBody.getMessage());
 		Assertions.assertEquals(0, responseBody.getCode());
 	}
 
+	/**
+	 * 联合logout方法测试
+	 */
 	@Test
 	void testRegister() {
+		init();
 		//创建当手机号重复时的请求体
-		requestBody.put("PhoneNumber", PHONE_NUMBER_EXIST);
-		environment.put("ip", IP);
-		environment.put("deviceId", DEVICE_ID);
-		requestBody.put("environment", environment);
+		requestBody.put("phoneNumber", phoneNumberExist_1);
 		//调用接口
-		responseBody = authController.loginWithUsername(requestBody);
+		responseBody = authController.register(requestBody);
 		//测试接口返回值，若响应体中的code等于1则测试通过
+		System.out.println(responseBody.getMessage());
 		Assertions.assertEquals(1, responseBody.getCode());
 
 		//创建当手机号不重复但验证码错误时的请求体
-		requestBody.put("PhoneNumber", PHONE_NUMBER_NOT_EXIST);
-		requestBody.put("verifyCode", VERIFY_CODE_INCORRECT);
+		requestBody.put("phoneNumber", phoneNumberNotExist);
+		requestBody.put("verifyCode", verifyCodeIncorrect);
 		//调用接口
-		responseBody = authController.loginWithUsername(requestBody);
+		responseBody = authController.register(requestBody);
 		//测试接口返回值，若响应体中的code等于1则测试通过
-		Assertions.assertEquals(1, responseBody.getCode());
+		System.out.println(responseBody.getMessage());
+		Assertions.assertEquals(2, responseBody.getCode());
 
 		//创建当手机号不重复且验证码正确但用户名重复时的请求体
-		requestBody.put("PhoneNumber", PHONE_NUMBER_NOT_EXIST);
-		requestBody.put("verifyCode", verifyCodeService.generateVerifyCode(PHONE_NUMBER_NOT_EXIST));
-		requestBody.put("username", USERNAME_EXIST);
+		requestBody.put("phoneNumber", phoneNumberNotExist);
+		requestBody.put("verifyCode", verifyCodeService.generateVerifyCode(phoneNumberNotExist));
+		requestBody.put("username", usernameExist);
 		//调用接口
-		responseBody = authController.loginWithUsername(requestBody);
+		responseBody = authController.register(requestBody);
 		//测试接口返回值，若响应体中的code等于1则测试通过
-		Assertions.assertEquals(1, responseBody.getCode());
+		System.out.println(responseBody.getMessage());
+		Assertions.assertEquals(3, responseBody.getCode());
 
 		//创建当手机号不重复且验证码正确且用户名不重复时的请求体
-		requestBody.put("PhoneNumber", PHONE_NUMBER_NOT_EXIST);
-		requestBody.put("verifyCode", verifyCodeService.generateVerifyCode(PHONE_NUMBER_NOT_EXIST));
-		requestBody.put("username", USERNAME_NOT_EXIST);
-		requestBody.put("password", PASSWORD_CORRECT);
+		requestBody.put("phoneNumber", phoneNumberNotExist);
+		requestBody.put("verifyCode", verifyCodeService.generateVerifyCode(phoneNumberNotExist));
+		requestBody.put("username", usernameNotExist);
+		requestBody.put("password", passwordCorrect);
 		//调用接口
-		responseBody = authController.loginWithUsername(requestBody);
+
+		responseBody = authController.register(requestBody);
 		//测试接口返回值，若响应体中的code等于0则测试通过
+		System.out.println(responseBody.getMessage());
+		Assertions.assertEquals(0, responseBody.getCode());
+
+		//		注销账号
+		requestBody.put("actionType", "2");
+		requestBody.put("sessionId", authdao.getUserByName(usernameNotExist).getId());
+		responseBody = authController.logout(requestBody);
+		//测试接口返回值，若响应体中的code等于0则测试通过
+		System.out.println(responseBody.getMessage());
 		Assertions.assertEquals(0, responseBody.getCode());
 	}
 
