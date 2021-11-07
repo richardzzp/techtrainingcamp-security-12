@@ -4,14 +4,16 @@ import com.catchyou.dao.CnDao;
 import com.catchyou.pojo.Log;
 import com.catchyou.pojo.User;
 import com.catchyou.service.CnService;
+import com.catchyou.util.MyUtil;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class CnServiceImpl implements CnService {
@@ -58,6 +60,11 @@ public class CnServiceImpl implements CnService {
         //登录记录
         Log log = new Log(null, user.getId(), new Date(), user.getRegisterIp(), user.getRegisterDeviceId());
         cnDao.insertLog(log);
+        //风控信息
+        String key = new StringBuilder().append(user.getUsername()).append("_login_cities").toString();
+        redisTemplate.opsForSet().add(key, MyUtil.getCityFromIp(user.getRegisterIp()));
+        key = new StringBuilder().append(user.getUsername()).append("_login_devices").toString();
+        redisTemplate.opsForSet().add(key, user.getRegisterDeviceId());
         //插入成功返回uuid
         return uuid;
     }
@@ -111,6 +118,11 @@ public class CnServiceImpl implements CnService {
         //登录记录
         Log log = new Log(null, user.getId(), new Date(), ip, deviceId);
         cnDao.insertLog(log);
+        //风控信息
+        String key = new StringBuilder().append(username).append("_login_cities").toString();
+        redisTemplate.opsForSet().add(key, MyUtil.getCityFromIp(ip));
+        key = new StringBuilder().append(username).append("_login_devices").toString();
+        redisTemplate.opsForSet().add(key, deviceId);
         return user.getId();
     }
 
@@ -120,6 +132,11 @@ public class CnServiceImpl implements CnService {
         //登录记录
         Log log = new Log(null, user.getId(), new Date(), ip, deviceId);
         cnDao.insertLog(log);
+        //风控信息
+        String key = new StringBuilder().append(user.getUsername()).append("_login_cities").toString();
+        redisTemplate.opsForSet().add(key, MyUtil.getCityFromIp(ip));
+        key = new StringBuilder().append(user.getUsername()).append("_login_devices").toString();
+        redisTemplate.opsForSet().add(key, deviceId);
         return user.getId();
     }
 
@@ -130,6 +147,11 @@ public class CnServiceImpl implements CnService {
             return false;
         }
         cnDao.setActiveFalse(user);
+        //一些风控信息的清除
+        String key = new StringBuilder().append(user.getUsername()).append("_login_cities").toString();
+        redisTemplate.delete(key);
+        key = new StringBuilder().append(user.getUsername()).append("_login_devices").toString();
+        redisTemplate.delete(key);
         return true;
     }
 
@@ -141,5 +163,31 @@ public class CnServiceImpl implements CnService {
     @Override
     public User getUserById(String uid) {
         return cnDao.getUserById(uid);
+    }
+
+    @Override
+    //规定，一个设备最多只能注册五个账号
+    public Boolean checkRubbishRegister(String deviceId) {
+        Integer count = cnDao.getMacRegisterCount(deviceId);
+        if (count >= 5) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    //如果使用密码登录，那么需要进行异地检测
+    public Boolean checkRemoteLogin(String username, String ip, String deviceId) {
+        String key = new StringBuilder().append(username).append("_login_devices").toString();
+        //如果不是信任的设备才需要检测
+        if (!redisTemplate.opsForSet().isMember(key, deviceId)) {
+            String city = MyUtil.getCityFromIp(ip);
+            key = new StringBuilder().append(username).append("_login_cities").toString();
+            //如果不是信任的ip地址
+            if (!redisTemplate.opsForSet().isMember(key, city)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

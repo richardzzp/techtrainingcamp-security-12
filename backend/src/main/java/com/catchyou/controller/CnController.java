@@ -4,9 +4,8 @@ import com.catchyou.pojo.CommonResult;
 import com.catchyou.pojo.User;
 import com.catchyou.service.impl.CnServiceImpl;
 import com.catchyou.service.impl.LjhVerifyCodeServiceImpl;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -20,6 +19,9 @@ public class CnController {
 
     @Resource
     private LjhVerifyCodeServiceImpl ljhVerifyCodeService;
+
+    @Resource
+    private RedisTemplate redisTemplate;
 
     @PostMapping("/cn/register")
     public CommonResult register(@RequestBody HashMap<String, Object> map) {
@@ -39,6 +41,12 @@ public class CnController {
             if (cnService.checkUsernameExist(username)) {
                 return new CommonResult(1, "用户名重复了，注册失败");
             }
+            //判断是否为垃圾注册
+            HashMap<String, String> environment = (HashMap) map.get("environment");
+            String deviceId = environment.get("deviceId");
+            if (cnService.checkRubbishRegister(deviceId)) {
+                return new CommonResult(1, "该设备已经注册过多账号，请注销部分非常用账号后再试");
+            }
             //验证码、用户名都没问题，就可以注册了
             //准备一个user进行注册
             User user = new User();
@@ -46,7 +54,6 @@ public class CnController {
             user.setPassword((String) map.get("password"));
             user.setPhoneNumber((String) map.get("phoneNumber"));
             user.setRegisterTime(new Date());
-            HashMap<String, String> environment = (HashMap) map.get("environment");
             user.setRegisterIp(environment.get("ip"));
             user.setRegisterDeviceId(environment.get("deviceId"));
             //进行注册
@@ -85,23 +92,29 @@ public class CnController {
             }
             if (res == 3) {
                 HashMap<String, Object> data = new HashMap<>();
-                data.put("banTime", 1);
+                data.put("banTime", 1 * 60 * 1000);
                 data.put("decisionType", 2);
                 return new CommonResult(1, "已经5次密码错误，1分钟内禁止尝试");
             }
             if (res == 4) {
                 HashMap<String, Object> data = new HashMap<>();
-                data.put("banTime", 5);
+                data.put("banTime", 5 * 60 * 1000);
                 data.put("decisionType", 2);
                 return new CommonResult(1, "已经10次密码错误，5分钟内禁止尝试");
             }
             if (res == 5) {
                 HashMap<String, Object> data = new HashMap<>();
-                data.put("banTime", 999);
+                data.put("banTime", -1);
                 data.put("decisionType", 2);
                 //此时还应短信通知用户账号存在风险
                 return new CommonResult(1, "已经15次密码错误，不再允许新的尝试");
             }
+
+            //判断是不是异地登录
+            if (cnService.checkRemoteLogin(username, ip, deviceId)) {
+                return new CommonResult(1, "异地登录，请使用手机号登录");
+            }
+
             //尝试进行登录
             String uuid = cnService.loginWithUsernameAfterCheck(username, ip, deviceId);
             //需要返回的一些信息（目前不清楚具体用途，先在这里随便写着）
@@ -153,9 +166,6 @@ public class CnController {
             //提取信息
             String sessionId = (String) map.get("sessionId"); //目前当作uid处理
             String actionType = (String) map.get("actionType");
-            HashMap<String, String> environment = (HashMap) map.get("environment");
-            String ip = environment.get("ip");
-            String deviceId = environment.get("deviceId");
 
             //登出目前不作处理
             if (actionType.equals("1")) {
@@ -183,9 +193,6 @@ public class CnController {
         try {
             //提取信息
             String sessionId = (String) map.get("sessionId"); //目前当作uid处理
-            HashMap<String, String> environment = (HashMap) map.get("environment");
-            String ip = environment.get("ip");
-            String deviceId = environment.get("deviceId");
             return new CommonResult(0, "请求成功", cnService.getLoginRecordById(sessionId));
         } catch (Exception e) {
             e.printStackTrace();
@@ -198,14 +205,30 @@ public class CnController {
         try {
             //提取信息
             String sessionId = (String) map.get("sessionId"); //目前当作uid处理
-            HashMap<String, String> environment = (HashMap) map.get("environment");
-            String ip = environment.get("ip");
-            String deviceId = environment.get("deviceId");
             return new CommonResult(0, "请求成功", cnService.getUserById(sessionId));
         } catch (Exception e) {
             e.printStackTrace();
             return new CommonResult(1, "未知错误");
         }
+    }
+
+    @GetMapping("/cn/delete/{username}/{ip}")
+    public Integer delete(@PathVariable String username,
+                          @PathVariable String ip) {
+        try {
+            String key = new StringBuilder().append(ip).append("_request_count").toString();
+            redisTemplate.delete(key);
+            key = new StringBuilder().append(username).append("_block_count").toString();
+            redisTemplate.delete(key);
+            redisTemplate.opsForSet().remove("ip_black_list", ip);
+            key = new StringBuilder().append(username).append("_").append(ip)
+                    .append("_wrong_pwd_count").toString();
+            redisTemplate.delete(key);
+            return 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
 }

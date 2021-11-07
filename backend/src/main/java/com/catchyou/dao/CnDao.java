@@ -25,4 +25,6 @@ public interface CnDao {
     User getUserById(String Id);
 
     Log[] getLoginRecordById(String Id);
+
+    Integer getMacRegisterCount(String deviceId);
 }

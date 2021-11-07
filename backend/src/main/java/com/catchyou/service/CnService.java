@@ -23,4 +23,8 @@ public interface CnService {
 
     User getUserById(String uid);
 
+    Boolean checkRubbishRegister(String deviceId);
+
+    Boolean checkRemoteLogin(String username, String ip, String deviceId);
+
 }

@@ -32,4 +32,8 @@
         select * from auth.log where uid = #{uid};
     </select>
 
+    <select id="getMacRegisterCount" resultType="Integer">
+        select count(*) from auth.user where register_device_id = #{deviceId} and is_active = 1;
+    </select>
+
 </mapper>
