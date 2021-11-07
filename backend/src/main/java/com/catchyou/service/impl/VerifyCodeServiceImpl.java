@@ -1,6 +1,6 @@
 package com.catchyou.service.impl;
 
-import com.catchyou.service.LjhVerifyCodeService;
+import com.catchyou.service.VerifyCodeService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -13,13 +13,13 @@ import java.util.*;
  * LIMIT_TIME: 限制一分钟内只能发送一次短信
  */
 @Service
-public class LjhVerifyCodeServiceImpl implements LjhVerifyCodeService {
+public class VerifyCodeServiceImpl implements VerifyCodeService {
     private static final Duration EXPIRE_TIME = Duration.ofMinutes(3);
     private static final Duration LIMIT_TIME = Duration.ofMinutes(1);
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public LjhVerifyCodeServiceImpl(RedisTemplate<String, Object> redisTemplate) {
+    public VerifyCodeServiceImpl(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
