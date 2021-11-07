@@ -67,8 +67,6 @@ public class LjhAuthController {
             verifyCode = verifyCodeService.generateVerifyCode(phoneNumber);
         }
 
-        System.out.println("验证码为" + verifyCode);
-
         Map<String, Object> data = new HashMap<>();
         data.put("verifyCode", verifyCode);
         data.put("expireTime", expireTime);
