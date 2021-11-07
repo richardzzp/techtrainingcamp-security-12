@@ -39,6 +39,8 @@ class TechtrainingcampSecurity12ApplicationTests {
 	private static final String phoneNumberNotExist = "15380436809";// 不存在的手机号
 	private static String ip;
 	private static String deviceId;
+	private static final String uidExist = "d7bedf61-5646-4aad-b59e-4aa94bdb93c7";
+	private static final String uidNotExist = "m7bedf61-5615-4hdd-wcfe-4aa94bdb93c7";
 	private static final String usernameExist = "chennuo";
 	private static final String usernameNotExist = "chenysh";
 	private static final String passwordCorrect = "123qweasd";
