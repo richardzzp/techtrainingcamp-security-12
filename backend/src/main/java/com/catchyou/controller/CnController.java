@@ -94,25 +94,27 @@ public class CnController {
                 HashMap<String, Object> data = new HashMap<>();
                 data.put("banTime", 1 * 60 * 1000);
                 data.put("decisionType", 2);
-                return new CommonResult(1, "已经5次密码错误，1分钟内禁止尝试");
+                return new CommonResult(1, "已经5次密码错误，1分钟内禁止尝试", data);
             }
             if (res == 4) {
                 HashMap<String, Object> data = new HashMap<>();
                 data.put("banTime", 5 * 60 * 1000);
                 data.put("decisionType", 2);
-                return new CommonResult(1, "已经10次密码错误，5分钟内禁止尝试");
+                return new CommonResult(1, "已经10次密码错误，5分钟内禁止尝试", data);
             }
             if (res == 5) {
                 HashMap<String, Object> data = new HashMap<>();
                 data.put("banTime", -1);
                 data.put("decisionType", 2);
                 //此时还应短信通知用户账号存在风险
-                return new CommonResult(1, "已经15次密码错误，不再允许新的尝试");
+                return new CommonResult(1, "已经15次密码错误，不再允许新的尝试", data);
             }
 
             //判断是不是异地登录
             if (cnService.checkRemoteLogin(username, ip, deviceId)) {
-                return new CommonResult(1, "异地登录，请使用手机号登录");
+                HashMap<String, Object> data = new HashMap<>();
+                data.put("decisionType", 0);
+                return new CommonResult(1, "异地登录，请使用手机号登录", data);
             }
 
             //尝试进行登录
