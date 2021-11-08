@@ -28,7 +28,7 @@ public class RequestInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String ip = request.getHeader("ip");
-        System.out.println("拦截判断:"+ip);
+        System.out.println("拦截判断:" + ip);
         //先看黑名单里有没有这个ip，有的话就直接打回去
         if (redisTemplate.opsForSet().isMember("ip_black_list", ip)) {
             System.out.println("请求被拦截");
