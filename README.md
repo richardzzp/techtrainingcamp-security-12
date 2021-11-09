@@ -13,7 +13,6 @@
 | MyBatis     | ORM框架          | http://www.mybatis.org/mybatis-3/zh/index.html |
 | Redis       | 分布式缓存       | https://redis.io/                              |
 | HikariCP    | 数据库连接池     | https://github.com/brettwooldridge/HikariCP    |
-| Lombok      | 简化对象封装工具 | https://github.com/rzwitserloot/lombok         |
 | MySQL       | 数据库系统       | https://www.mysql.com/                         |
 | jBCrypt     | 加密算法工具库   | https://www.mindrot.org/projects/jBCrypt/      |
 | JUnit       | 单元测试框架     | https://junit.org/junit5/                      |
