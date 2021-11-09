@@ -80,9 +80,9 @@ public class VerifyCodeServiceImpl implements VerifyCodeService {
     }
 
     /**
-     * 判断手机号是否多次进行验证码请求 请求次数在一天内达到3次则认为请求次数过多
+     * 判断手机号是否多次进行验证码请求 请求次数达到3次则认为请求次数过多
      * @param phoneNumber 手机号
-     * @return 若手机号进行验证码请求的次数在一天内达到3次 则返回true 否则返回false
+     * @return 若手机号进行验证码请求的次数达到3次 则返回true 否则返回false
      */
     @Override
     public boolean isFrequentRequest(String phoneNumber) {
