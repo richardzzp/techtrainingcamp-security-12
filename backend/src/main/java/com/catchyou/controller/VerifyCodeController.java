@@ -3,7 +3,6 @@ package com.catchyou.controller;
 import com.catchyou.pojo.CommonResult;
 import com.catchyou.service.AuthService;
 import com.catchyou.service.VerifyCodeService;
-import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,10 +13,15 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/verifyCode")
-@AllArgsConstructor
 public class VerifyCodeController {
     private final VerifyCodeService verifyCodeServiceImpl;
     private final AuthService authServiceImpl;
+
+    public VerifyCodeController(VerifyCodeService verifyCodeServiceImpl,
+                                AuthService authServiceImpl) {
+        this.verifyCodeServiceImpl = verifyCodeServiceImpl;
+        this.authServiceImpl = authServiceImpl;
+    }
 
     /**
      * 获取验证码
